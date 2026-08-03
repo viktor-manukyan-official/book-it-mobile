@@ -1,18 +1,53 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useState } from "react";
+import { Alert, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/colors";
 import { PROFILE_MENU_ITEMS } from "../../data/mock";
+import { useAuth } from "../../src/hooks/useAuth";
 
 export default function ProfileScreen() {
+  const { user, signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const fullName = user
+    ? `${user.firstName} ${user.lastName}`.trim()
+    : "";
+  const initial = (user?.firstName?.[0] ?? "").toUpperCase();
+
+  const confirmLogout = () => {
+    Alert.alert("Log out", "Are you sure you want to log out of BookIt?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: async () => {
+          setSigningOut(true);
+          try {
+            // Clears the stored session; the root route guard then redirects
+            // back to the phone-login screen.
+            await signOut();
+          } catch {
+            setSigningOut(false);
+            Alert.alert("Log out failed", "Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
-          <Ionicons name="person" size={48} color={Colors.white} />
+          {initial ? (
+            <Text style={styles.avatarInitial}>{initial}</Text>
+          ) : (
+            <Ionicons name="person" size={48} color={Colors.white} />
+          )}
         </View>
-        <Text style={styles.name}>Anna Hakobyan</Text>
-        <Text style={styles.email}>anna.hakobyan@email.com</Text>
+        <Text style={styles.name}>{fullName || "BookIt user"}</Text>
+        {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
       </View>
 
       <View style={styles.menuSection}>
@@ -44,6 +79,21 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        <TouchableOpacity
+          style={styles.logoutButton}
+          activeOpacity={0.7}
+          onPress={confirmLogout}
+          disabled={signingOut}
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
+          accessibilityState={{ disabled: signingOut, busy: signingOut }}
+        >
+          <Ionicons name="log-out-outline" size={22} color={Colors.error} />
+          <Text style={styles.logoutLabel}>
+            {signingOut ? "Logging out…" : "Log out"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -65,6 +115,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
+  },
+  avatarInitial: {
+    fontSize: 42,
+    fontWeight: "700",
+    color: Colors.white,
   },
   name: {
     fontSize: 22,
@@ -106,5 +161,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
     marginLeft: 16,
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: Colors.card,
+    minHeight: 44,
+  },
+  logoutLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.error,
   },
 });

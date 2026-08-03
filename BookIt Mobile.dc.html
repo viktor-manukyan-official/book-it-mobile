@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EDEDF0; font-family:Inter,-apple-system,'Helvetica Neue',sans-serif; }
+  a { color:#FF6B6B; text-decoration:none; }
+  a:hover { color:#E85555; }
+  * { box-sizing:border-box; }
+</style>
+</helmet>
+
+<div style="padding:72px 64px 120px;display:flex;flex-direction:column;gap:80px;background:#EDEDF0">
+
+  <div style="display:flex;flex-direction:column;gap:14px;max-width:760px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#9CA3AF">BookIt · customer app · light theme</div>
+    <div style="font-size:44px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E;line-height:1.05">Booking, start to finish.</div>
+    <div style="font-size:17px;line-height:1.6;color:#6B7280;text-wrap:pretty">Seventeen iPhone-class frames on one design system: coral→peach gradient signature, pill time slots, soft floating cards. No payment UI anywhere — price is informational, the customer pays at the venue.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;color:#1A1A2E;box-shadow:0 2px 10px rgba(26,26,46,.06)"><span style="width:12px;height:12px;border-radius:4px;background:linear-gradient(135deg,#FF6B6B,#FFA07A)"></span>#FF6B6B → #FFA07A</div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;color:#1A1A2E;box-shadow:0 2px 10px rgba(26,26,46,.06)"><span style="width:12px;height:12px;border-radius:4px;background:#F5F5F7;border:1px solid #E5E7EB"></span>#F5F5F7 canvas</div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;color:#1A1A2E;box-shadow:0 2px 10px rgba(26,26,46,.06)">Inter · 390 × 844</div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;color:#1A1A2E;box-shadow:0 2px 10px rgba(26,26,46,.06)">֏ dram</div>
+    </div>
+  </div>
+
+  <!-- ══════════ DISCOVERY (v2 review) ══════════ -->
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#FF6B6B">New — Venue discovery</div>
+      <div style="height:1px;flex:1;background:#DDDDE2"></div>
+      <div style="font-size:13px;color:#9CA3AF">Search companies → see their services → book</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap">
+
+      <!-- Explore / search venues -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.12</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Explore — search venues</span></div>
+        <div data-screen-label="Explore venues" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:16px;padding:8px 0 0">
+            <div style="padding:0 20px;display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">Explore</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#6B7280"><span style="width:6px;height:6px;border-radius:999px;background:#FF6B6B"></span>Yerevan · Kentron</div>
+            </div>
+            <div style="padding:0 20px">
+              <div style="height:48px;border-radius:14px;background:#FFFFFF;border:1.5px solid #FF6B6B;box-shadow:0 0 0 4px rgba(255,107,107,.1);display:flex;align-items:center;gap:10px;padding:0 14px">
+                <span style="width:15px;height:15px;border-radius:999px;border:2px solid #FF6B6B;flex:none"></span>
+                <span style="font-size:15px;font-weight:500;color:#1A1A2E">spa</span><span style="width:2px;height:20px;background:#FF6B6B"></span>
+                <span style="flex:1"></span><span style="font-size:13px;font-weight:500;color:#9CA3AF">Cancel</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden">
+              <div style="height:36px;border-radius:999px;background:#1A1A2E;color:#FFFFFF;display:flex;align-items:center;gap:6px;padding:0 14px;font-size:13px;font-weight:500;flex:none">Open now</div>
+              <div style="height:36px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Top rated</div>
+              <div style="height:36px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Nearby</div>
+              <div style="height:36px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Spa</div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:13px;color:#9CA3AF">12 venues match "spa"</div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:13px">
+                  <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#FFB88C,#FF6B6B);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:24px;font-weight:700;flex:none">L</div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lumière Beauty Studio</span><span style="font-size:13px;font-weight:600;color:#F59E0B;flex:none">★ 4.9</span></div>
+                    <div style="font-size:13px;color:#6B7280">Hair · Spa · Nails</div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="display:flex;align-items:center;gap:5px;font-weight:500;color:#22C55E"><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span>Open until 20:00</span><span style="color:#C0C0C8">·</span><span style="color:#9CA3AF">0.4 km · Babayan 36</span></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;overflow:hidden">
+                  <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:5px 10px;white-space:nowrap;flex:none">Aroma Spa</span>
+                  <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:5px 10px;white-space:nowrap;flex:none">Deep Tissue</span>
+                  <span style="font-size:12px;color:#9CA3AF;white-space:nowrap">+9 · from 8,000 ֏</span>
+                </div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:13px">
+                  <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#C9E8D8,#8FCDB0);display:flex;align-items:center;justify-content:center;color:#2E6B4F;font-size:24px;font-weight:700;flex:none">N</div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Narine Wellness &amp; Spa</span><span style="font-size:13px;font-weight:600;color:#F59E0B;flex:none">★ 4.8</span></div>
+                    <div style="font-size:13px;color:#6B7280">Spa · Massage</div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="display:flex;align-items:center;gap:5px;font-weight:500;color:#22C55E"><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span>Open until 22:00</span><span style="color:#C0C0C8">·</span><span style="color:#9CA3AF">1.2 km · Saryan St</span></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;overflow:hidden">
+                  <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:5px 10px;white-space:nowrap;flex:none">Hot Stone</span>
+                  <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:5px 10px;white-space:nowrap;flex:none">Hammam</span>
+                  <span style="font-size:12px;color:#9CA3AF;white-space:nowrap">+6 · from 10,000 ֏</span>
+                </div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px;opacity:.92">
+                <div style="display:flex;gap:13px">
+                  <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#D7E7FF,#A8BDF0);display:flex;align-items:center;justify-content:center;color:#3D5390;font-size:24px;font-weight:700;flex:none">A</div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ararat Day Spa</span><span style="font-size:13px;font-weight:600;color:#F59E0B;flex:none">★ 4.6</span></div>
+                    <div style="font-size:13px;color:#6B7280">Spa · Clinic</div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="display:flex;align-items:center;gap:5px;font-weight:500;color:#9CA3AF"><span style="width:5px;height:5px;border-radius:999px;background:#9CA3AF"></span>Opens tomorrow 10:00</span><span style="color:#C0C0C8">·</span><span style="color:#9CA3AF">2.8 km · Komitas Ave</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Explore</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Venue profile -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.13</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Venue profile — company &amp; its services</span></div>
+        <div data-screen-label="Venue profile" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:232px;background:linear-gradient(150deg,#FFB88C,#FF7E6B 60%,#FF6B6B);flex:none;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:14px 20px 18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:#FFFFFF;padding:0 6px">9:41
+              <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #FFFFFF"></span><span style="width:16px;height:10px;border-radius:3px;background:#FFFFFF"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #FFFFFF"></span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div style="width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-size:20px;color:#8A3B32">‹</div>
+              <div style="width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-size:16px;color:#8A3B32">♡</div>
+            </div>
+            <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)">venue photo placeholder</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+            <div style="padding:0 20px;margin-top:-34px;position:relative;flex:none">
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 10px 30px rgba(26,26,46,.1);display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <span style="font-size:21px;font-weight:700;letter-spacing:-.02em;color:#1A1A2E">Lumière Beauty Studio</span>
+                    <span style="font-size:13px;color:#6B7280">Babayan 36, Yerevan · 0.4 km</span>
+                  </div>
+                  <span style="flex:none;font-size:14px;font-weight:600;color:#F59E0B">★ 4.9 <span style="color:#9CA3AF;font-weight:400">(128)</span></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#22C55E"><span style="width:6px;height:6px;border-radius:999px;background:#22C55E"></span>Open today 9:00–20:00<span style="color:#C0C0C8;font-weight:400">·</span><span style="color:#9CA3AF;font-weight:400">Closed Sundays</span></div>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;height:40px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:#1A1A2E">Call</div>
+                  <div style="flex:1;height:40px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:#1A1A2E">Directions</div>
+                  <div style="flex:1;height:40px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:#1A1A2E">Share</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:none;padding:16px 20px 0;display:flex;gap:22px;border-bottom:1px solid #E5E7EB;margin:0 0 14px">
+              <div style="padding:0 2px 10px;font-size:15px;font-weight:600;color:#1A1A2E;border-bottom:2.5px solid #FF6B6B">Services <span style="color:#9CA3AF;font-weight:500">11</span></div>
+              <div style="padding:0 2px 10px;font-size:15px;font-weight:500;color:#9CA3AF">Team <span style="font-weight:400">3</span></div>
+              <div style="padding:0 2px 10px;font-size:15px;font-weight:500;color:#9CA3AF">About</div>
+            </div>
+            <div style="display:flex;gap:8px;padding:0 20px 12px;overflow:hidden;flex:none">
+              <div style="height:34px;border-radius:999px;background:#1A1A2E;color:#FFFFFF;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">All</div>
+              <div style="height:34px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Hair</div>
+              <div style="height:34px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Spa</div>
+              <div style="height:34px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;flex:none">Nails</div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:10px">
+              <div style="background:#FFFFFF;border-radius:18px;padding:13px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;gap:12px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(140deg,#FFE0CC,#FFBDBD);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#C2554F;flex:none">F</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:15px;font-weight:600;color:#1A1A2E">Face massage</span>
+                  <span style="font-size:12px;color:#6B7280">45 min · <span style="font-weight:600;color:#1A1A2E">15,000 ֏</span></span>
+                </div>
+                <div style="height:32px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 15px;flex:none">Book</div>
+              </div>
+              <div style="background:#FFFFFF;border-radius:18px;padding:13px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;gap:12px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(140deg,#E7DEFF,#FFD6E8);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#7A63B8;flex:none">A</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:15px;font-weight:600;color:#1A1A2E">Aroma Spa Ritual</span>
+                  <span style="font-size:12px;color:#6B7280">90 min · <span style="font-weight:600;color:#1A1A2E">25,000 ֏</span></span>
+                </div>
+                <div style="height:32px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 15px;flex:none">Book</div>
+              </div>
+              <div style="background:#FFFFFF;border-radius:18px;padding:13px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;gap:12px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(140deg,#FFEAD2,#FFCBA4);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#B97038;flex:none">D</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:15px;font-weight:600;color:#1A1A2E">Deep Tissue Massage</span>
+                  <span style="font-size:12px;color:#6B7280">60 min · <span style="font-weight:600;color:#1A1A2E">18,000 ֏</span></span>
+                </div>
+                <div style="height:32px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 15px;flex:none">Book</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;padding:10px 20px 12px;display:flex;flex-direction:column;gap:8px">
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ AUTH ══════════ -->
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#1A1A2E">01 — Auth</div>
+      <div style="height:1px;flex:1;background:#DDDDE2"></div>
+      <div style="font-size:13px;color:#9CA3AF">Passwordless · Firebase phone OTP</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap">
+
+      <!-- Welcome -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.1</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Welcome</span></div>
+        <div data-screen-label="Welcome" style="width:390px;height:844px;border-radius:46px;background:#FFF8F5;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;position:relative;display:flex;flex-direction:column">
+          <div style="position:absolute;top:-160px;right:-120px;width:420px;height:420px;border-radius:999px;background:radial-gradient(circle at 30% 30%,rgba(255,107,107,.55),rgba(255,160,122,.18) 60%,rgba(255,160,122,0) 72%)"></div>
+          <div style="position:absolute;bottom:120px;left:-140px;width:340px;height:340px;border-radius:999px;background:radial-gradient(circle at 60% 40%,rgba(255,196,160,.5),rgba(255,196,160,0) 70%)"></div>
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;position:relative">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:0 28px 44px;position:relative;gap:36px">
+            <div style="display:flex;flex-direction:column;gap:22px">
+              <div style="width:76px;height:76px;border-radius:26px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 14px 30px rgba(255,107,107,.35);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:38px;font-weight:700;letter-spacing:-.04em">B</div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:46px;font-weight:700;letter-spacing:-.04em;line-height:1;color:#1A1A2E">BookIt</div>
+                <div style="font-size:19px;line-height:1.45;color:#6B7280;max-width:270px;text-wrap:pretty">Book beauty &amp; wellness in Yerevan, instantly. Pay at the venue.</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.34);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Continue with phone</div>
+              <div style="font-size:13px;line-height:1.5;color:#9CA3AF;text-align:center;padding:0 18px">By continuing you agree to our Terms and Privacy Policy.</div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;align-self:center"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.2</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Sign in — phone</span></div>
+        <div data-screen-label="Sign in phone" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="height:52px;display:flex;align-items:center;padding:0 20px">
+            <div style="width:40px;height:40px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 8px rgba(26,26,46,.06);display:flex;align-items:center;justify-content:center;color:#1A1A2E;font-size:20px">‹</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;padding:20px 24px 0;gap:30px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:29px;font-weight:700;letter-spacing:-.03em;line-height:1.15;color:#1A1A2E">Enter your<br>phone number</div>
+              <div style="font-size:15px;line-height:1.5;color:#6B7280">We'll text you a 6-digit code. No password needed.</div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="height:56px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px">
+                <span style="width:26px;height:18px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column"><span style="flex:1;background:#D90012"></span><span style="flex:1;background:#0033A0"></span><span style="flex:1;background:#F2A800"></span></span>
+                <span style="font-size:16px;font-weight:600;color:#1A1A2E">+374</span>
+              </div>
+              <div style="flex:1;height:56px;border-radius:14px;background:#FFFFFF;border:1.5px solid #FF6B6B;box-shadow:0 0 0 4px rgba(255,107,107,.1);display:flex;align-items:center;padding:0 16px;font-size:17px;font-weight:600;letter-spacing:.02em;color:#1A1A2E">77 123 456<span style="width:2px;height:22px;background:#FF6B6B;margin-left:2px"></span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Send code</div>
+              <div style="font-size:13px;line-height:1.5;color:#9CA3AF;text-align:center;padding:0 24px">Standard SMS rates may apply. Your number is never shown to providers.</div>
+            </div>
+          </div>
+          <div style="background:#D6D6DC;border-top:1px solid #C8C8CF;padding:8px 6px 10px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:400;color:#1A1A2E">1</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">2</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">3</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">4</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">5</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">6</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">7</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">8</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">9</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1"></div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#1A1A2E">0</div>
+              <div style="flex:1;height:44px;border-radius:8px;background:#BEBEC6;display:flex;align-items:center;justify-content:center;font-size:18px;color:#1A1A2E">⌫</div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.3;align-self:center;margin-top:2px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OTP -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.3</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">OTP verification</span></div>
+        <div data-screen-label="OTP" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="height:52px;display:flex;align-items:center;padding:0 20px">
+            <div style="width:40px;height:40px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 8px rgba(26,26,46,.06);display:flex;align-items:center;justify-content:center;color:#1A1A2E;font-size:20px">‹</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;padding:20px 24px 0;gap:32px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:29px;font-weight:700;letter-spacing:-.03em;line-height:1.15;color:#1A1A2E">Enter the<br>6-digit code</div>
+              <div style="font-size:15px;line-height:1.5;color:#6B7280">Sent to <span style="font-weight:600;color:#1A1A2E">+374 77 123 456</span></div>
+            </div>
+            <div style="display:flex;gap:9px">
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#1A1A2E">4</div>
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#1A1A2E">8</div>
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#1A1A2E">2</div>
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1.5px solid #FF6B6B;box-shadow:0 0 0 4px rgba(255,107,107,.1);display:flex;align-items:center;justify-content:center"><span style="width:2px;height:26px;background:#FF6B6B"></span></div>
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB"></div>
+              <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);opacity:.45;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Verify</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;color:#6B7280">Didn't get it? <span style="color:#9CA3AF">Resend in 0:24</span></div>
+            </div>
+          </div>
+          <div style="padding:0 24px 34px"><div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div></div>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.4</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Registration — new user</span></div>
+        <div data-screen-label="Registration" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;padding:36px 24px 0;gap:26px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="width:52px;height:52px;border-radius:18px;background:linear-gradient(135deg,#FFE3D5,#FFD1D1);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#FF6B6B">✦</div>
+              <div style="font-size:29px;font-weight:700;letter-spacing:-.03em;line-height:1.15;color:#1A1A2E;margin-top:8px">Welcome to BookIt</div>
+              <div style="font-size:15px;line-height:1.5;color:#6B7280">Just a few details, then you're booking.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;gap:10px">
+                <div style="flex:1;display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:500;color:#6B7280">First name</span><div style="height:52px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;padding:0 14px;font-size:16px;font-weight:500;color:#1A1A2E">Ani</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:500;color:#6B7280">Last name</span><div style="height:52px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;padding:0 14px;font-size:16px;font-weight:500;color:#1A1A2E">Petrosyan</div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:500;color:#6B7280">Email</span><div style="height:52px;border-radius:12px;background:#FFFFFF;border:1.5px solid #FF6B6B;box-shadow:0 0 0 4px rgba(255,107,107,.1);display:flex;align-items:center;padding:0 14px;font-size:16px;color:#1A1A2E">ani.petrosyan@gmail.com</div></div>
+              <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:500;color:#6B7280">Gender <span style="color:#9CA3AF;font-weight:400">· optional</span></span>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;height:48px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#6B7280">Female</div>
+                  <div style="flex:1;height:48px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#6B7280">Male</div>
+                  <div style="flex:1;height:48px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#6B7280">Other</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:16px 24px 30px;display:flex;flex-direction:column;gap:16px">
+            <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Create account</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ DISCOVER ══════════ -->
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#1A1A2E">02 — Discover</div>
+      <div style="height:1px;flex:1;background:#DDDDE2"></div>
+      <div style="font-size:13px;color:#9CA3AF">Lumière Beauty Studio · Babayan 36, Yerevan</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap">
+
+      <!-- Home populated -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.5</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Home — populated</span></div>
+        <div data-screen-label="Home" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:20px;padding:10px 0 0">
+            <div style="padding:0 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:13px;color:#9CA3AF">Barev, Ani 👋</div>
+                <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">Book your visit</div>
+              </div>
+              <div style="width:42px;height:42px;border-radius:999px;background:linear-gradient(135deg,#FFD8C2,#FFC0C0);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#B4453F;flex:none">AP</div>
+            </div>
+
+            <div style="padding:0 20px">
+              <div style="height:46px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:10px;padding:0 14px">
+                <span style="width:15px;height:15px;border-radius:999px;border:2px solid #9CA3AF;flex:none"></span>
+                <span style="font-size:15px;color:#9CA3AF">Search venues &amp; services</span>
+              </div>
+            </div>
+
+            <div style="padding:0 20px">
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;gap:14px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#FFB88C,#FF6B6B);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:22px;font-weight:700;flex:none">L</div>
+                <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lumière Beauty Studio</span></div>
+                  <div style="font-size:13px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Babayan 36 · Yerevan</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#22C55E"><span style="width:6px;height:6px;border-radius:999px;background:#22C55E"></span>Open today 9:00–20:00</div>
+                </div>
+                <div style="font-size:20px;color:#C8C8CF">›</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden">
+                <div style="height:38px;border-radius:999px;background:#1A1A2E;color:#FFFFFF;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:500;flex:none">All</div>
+                <div style="height:38px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:500;flex:none">Hair</div>
+                <div style="height:38px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:500;flex:none">Nails</div>
+                <div style="height:38px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:500;flex:none">Massage</div>
+                <div style="height:38px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;display:flex;align-items:center;padding:0 16px;font-size:14px;font-weight:500;flex:none">Spa</div>
+              </div>
+            </div>
+
+            <div style="flex:1;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div style="font-size:19px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Popular</div>
+                <div style="font-size:13px;font-weight:500;color:#FF6B6B">11 services</div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;gap:14px">
+                <div style="width:74px;height:74px;border-radius:16px;background:linear-gradient(140deg,#FFE0CC,#FFBDBD);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#C2554F;flex:none">F</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:#1A1A2E;line-height:1.25">Face massage</div>
+                  <div style="font-size:13px;color:#6B7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Relaxing facial massage with aroma oils</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+                    <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:4px 9px">45 min</span>
+                    <span style="font-size:15px;font-weight:600;color:#1A1A2E">15,000 ֏</span>
+                  </div>
+                </div>
+                <div style="align-self:flex-end;height:34px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 16px;flex:none">Book</div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;gap:14px">
+                <div style="width:74px;height:74px;border-radius:16px;background:linear-gradient(140deg,#FFEAD2,#FFCBA4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#B97038;flex:none">B</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:#1A1A2E;line-height:1.25">Balayage &amp; Gloss</div>
+                  <div style="font-size:13px;color:#6B7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Hand-painted lightening with toning gloss</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+                    <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:4px 9px">150 min</span>
+                    <span style="font-size:15px;font-weight:600;color:#1A1A2E">45,000 ֏</span>
+                  </div>
+                </div>
+                <div style="align-self:flex-end;height:34px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 16px;flex:none">Book</div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;gap:14px">
+                <div style="width:74px;height:74px;border-radius:16px;background:linear-gradient(140deg,#E7DEFF,#FFD6E8);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#7A63B8;flex:none">K</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:#1A1A2E;line-height:1.25">Keratin Smoothing</div>
+                  <div style="font-size:13px;color:#6B7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Frizz control, lasts up to 12 weeks</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+                    <span style="font-size:12px;font-weight:500;color:#6B7280;background:#F5F5F7;border-radius:999px;padding:4px 9px">120 min</span>
+                    <span style="font-size:15px;font-weight:600;color:#1A1A2E">38,000 ֏</span>
+                  </div>
+                </div>
+                <div style="align-self:flex-end;height:34px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);color:#FFFFFF;font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 16px;flex:none">Book</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Home empty -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.5v</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Home — empty state</span></div>
+        <div data-screen-label="Home empty" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:20px;padding:10px 0 0">
+            <div style="padding:0 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:13px;color:#9CA3AF">Barev, Ani 👋</div>
+                <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">Book your visit</div>
+              </div>
+              <div style="width:42px;height:42px;border-radius:999px;background:linear-gradient(135deg,#FFD8C2,#FFC0C0);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#B4453F;flex:none">AP</div>
+            </div>
+            <div style="padding:0 20px">
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;gap:14px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#FFB88C,#FF6B6B);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:22px;font-weight:700;flex:none">L</div>
+                <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:#1A1A2E">Lumière Beauty Studio</div>
+                  <div style="font-size:13px;color:#6B7280">Babayan 36 · Yerevan</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#9CA3AF"><span style="width:6px;height:6px;border-radius:999px;background:#9CA3AF"></span>Closed today</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 44px;text-align:center">
+              <div style="width:96px;height:96px;border-radius:32px;background:linear-gradient(140deg,#FFECE2,#FFDADA);display:flex;align-items:center;justify-content:center">
+                <span style="width:34px;height:34px;border-radius:12px;border:2.5px dashed #FF9E8A"></span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">No services yet</div>
+                <div style="font-size:15px;line-height:1.5;color:#6B7280;text-wrap:pretty">This venue hasn't published its menu. We'll notify you the moment booking opens.</div>
+              </div>
+              <div style="height:46px;border-radius:999px;background:#FFFFFF;border:1.5px solid #FF6B6B;color:#FF6B6B;font-size:15px;font-weight:600;display:flex;align-items:center;padding:0 22px">Notify me</div>
+            </div>
+            <div style="padding:0 20px 8px;display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C0C0C8">loading skeleton — same slot</div>
+              <div style="background:#FFFFFF;border-radius:20px;padding:14px;box-shadow:0 4px 20px rgba(26,26,46,.05);display:flex;gap:14px;opacity:.9">
+                <div style="width:74px;height:74px;border-radius:16px;background:#EEEEF1;flex:none"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center">
+                  <div style="height:13px;width:70%;border-radius:999px;background:#EEEEF1"></div>
+                  <div style="height:11px;width:88%;border-radius:999px;background:#F2F2F5"></div>
+                  <div style="height:11px;width:40%;border-radius:999px;background:#F2F2F5"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service details -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.6</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Service details</span></div>
+        <div data-screen-label="Service details" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column;position:relative">
+          <div style="height:300px;background:linear-gradient(150deg,#FFE0CC,#FFB1A8 55%,#FF9E8A);flex:none;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:14px 20px 22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:#5C2B26;padding:0 6px">9:41
+              <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #5C2B26"></span><span style="width:16px;height:10px;border-radius:3px;background:#5C2B26"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #5C2B26"></span></div>
+            </div>
+            <div style="position:absolute;top:64px;left:20px;width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:20px;color:#5C2B26">‹</div>
+            <div style="position:absolute;top:150px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(92,43,38,.5)">service photo placeholder</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:8px">
+                <span style="background:rgba(255,255,255,.8);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:#5C2B26">Face procedures</span>
+                <span style="background:rgba(255,255,255,.8);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:#5C2B26">★ 4.9 · 128</span>
+              </div>
+              <div style="font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:#3D1A16;max-width:300px">Face massage</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:18px 20px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;background:#FFFFFF;border-radius:16px;padding:12px 14px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;color:#9CA3AF">Duration</span><span style="font-size:17px;font-weight:600;color:#1A1A2E">45 min</span></div>
+              <div style="flex:1;background:#FFFFFF;border-radius:16px;padding:12px 14px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;color:#9CA3AF">Price</span><span style="font-size:17px;font-weight:600;color:#1A1A2E">15,000 ֏</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">About this service</div>
+              <div style="font-size:15px;line-height:1.6;color:#6B7280;text-wrap:pretty">A relaxing 45-minute facial massage with cleansing, lymphatic-drainage techniques and aroma oils. Improves circulation and leaves skin visibly refreshed.</div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:16px;padding:14px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:12px;background:rgba(255,107,107,.12);display:flex;align-items:center;justify-content:center;color:#FF6B6B;font-size:16px;font-weight:700;flex:none">✓</div>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600;color:#1A1A2E">You can choose your technician</span><span style="font-size:13px;color:#6B7280">Or let us assign the next available</span></div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:16px;padding:14px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#F59E0B"></span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Cancellation policy</span></div>
+              <div style="font-size:13px;line-height:1.55;color:#6B7280">Free cancellation up to <strong style="color:#1A1A2E;font-weight:600">120 min</strong> before your slot. After that a <strong style="color:#1A1A2E;font-weight:600">3,000 ֏</strong> fee may apply.</div>
+            </div>
+            <div style="font-size:13px;color:#9CA3AF;display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#C8C8CF"></span>Pay at the venue — no card needed to book.</div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:14px 20px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -8px 24px rgba(26,26,46,.05)">
+            <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Choose a time</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ BOOKING ══════════ -->
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#1A1A2E">03 — Booking flow</div>
+      <div style="height:1px;flex:1;background:#DDDDE2"></div>
+      <div style="font-size:13px;color:#9CA3AF">availableSlots → createAppointment · no payment</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap">
+
+      <!-- Availability with slots -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.7</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Choose time — slots available</span></div>
+        <div data-screen-label="Choose time" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:none;padding:4px 20px 12px;display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 8px rgba(26,26,46,.06);display:flex;align-items:center;justify-content:center;font-size:20px;color:#1A1A2E;flex:none">‹</div>
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <div style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Choose a time</div>
+              <div style="font-size:12px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Face massage · 45 min</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:0 20px;display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:14px;font-weight:600;color:#1A1A2E">August 2026</span><span style="font-size:12px;color:#9CA3AF">Booking up to 60 days out</span></div>
+              <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden">
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.45"><span style="font-size:11px;font-weight:500;color:#9CA3AF">SUN</span><span style="font-size:18px;font-weight:600;color:#9CA3AF">2</span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">MON</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">3</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:linear-gradient(150deg,#FF6B6B,#FFA07A);box-shadow:0 8px 18px rgba(255,107,107,.32);padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.85)">TUE</span><span style="font-size:18px;font-weight:700;color:#FFFFFF">4</span><span style="width:5px;height:5px;border-radius:999px;background:#FFFFFF"></span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">WED</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">5</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#F0F0F3;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#C0C0C8">THU</span><span style="font-size:18px;font-weight:600;color:#C0C0C8;text-decoration:line-through">6</span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">FRI</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">7</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+              </div>
+              <div style="padding:0 20px;font-size:12px;color:#9CA3AF;display:flex;gap:14px"><span style="display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span>slots open</span><span style="display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:999px;background:#C0C0C8"></span>closed · holiday</span></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:0 20px;font-size:14px;font-weight:600;color:#1A1A2E">Technician</div>
+              <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden">
+                <div style="flex:none;height:44px;border-radius:999px;background:#1A1A2E;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:13px;color:#FFFFFF">✦</span><span style="font-size:14px;font-weight:600;color:#FFFFFF">Any</span></div>
+                <div style="flex:none;height:44px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#FFD8C2,#FFC0C0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#B4453F">AM</span><span style="font-size:14px;font-weight:500;color:#1A1A2E">Anushik</span></div>
+                <div style="flex:none;height:44px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#D7E7FF,#C9D8FF);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#4B63A8">DH</span><span style="font-size:14px;font-weight:500;color:#1A1A2E">Davit</span></div>
+                <div style="flex:none;height:44px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#E4DCFF,#FFD6E8);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#7A63B8">LS</span><span style="font-size:14px;font-weight:500;color:#1A1A2E">Lilit</span></div>
+              </div>
+            </div>
+
+            <div style="flex:1;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#9CA3AF">Morning</span><span style="height:1px;flex:1;background:#E5E7EB"></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">9:30</span><span style="font-size:10px;color:#9CA3AF">Anushik</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">10:15</span><span style="font-size:10px;color:#9CA3AF">Davit</span></div>
+                  <div style="border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 8px 18px rgba(255,107,107,.3);padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:700;color:#FFFFFF">10:30</span><span style="font-size:10px;color:rgba(255,255,255,.85)">Anushik</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">11:00</span><span style="font-size:10px;color:#9CA3AF">Lilit</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">11:45</span><span style="font-size:10px;color:#9CA3AF">Anushik</span></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#9CA3AF">Afternoon</span><span style="height:1px;flex:1;background:#E5E7EB"></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">13:00</span><span style="font-size:10px;color:#9CA3AF">Davit</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">14:30</span><span style="font-size:10px;color:#9CA3AF">Lilit</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">15:15</span><span style="font-size:10px;color:#9CA3AF">Anushik</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">16:00</span><span style="font-size:10px;color:#9CA3AF">Davit</span></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#9CA3AF">Evening</span><span style="height:1px;flex:1;background:#E5E7EB"></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">18:00</span><span style="font-size:10px;color:#9CA3AF">Lilit</span></div>
+                  <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;padding:9px 15px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">18:45</span><span style="font-size:10px;color:#9CA3AF">Anushik</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:12px 20px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -8px 24px rgba(26,26,46,.05)">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:#6B7280">Tue 4 Aug · 10:30–11:15 · Anushik</span><span style="font-size:15px;font-weight:600;color:#1A1A2E">15,000 ֏</span></div>
+            <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Review booking</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability empty -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.7v</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Choose time — empty day</span></div>
+        <div data-screen-label="Choose time empty" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:none;padding:4px 20px 12px;display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 8px rgba(26,26,46,.06);display:flex;align-items:center;justify-content:center;font-size:20px;color:#1A1A2E;flex:none">‹</div>
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <div style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Choose a time</div>
+              <div style="font-size:12px;color:#9CA3AF">Balayage &amp; Gloss · 150 min</div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:0 20px;display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:14px;font-weight:600;color:#1A1A2E">August 2026</span><span style="font-size:12px;color:#9CA3AF">Booking up to 60 days out</span></div>
+              <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden">
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.45"><span style="font-size:11px;font-weight:500;color:#9CA3AF">SUN</span><span style="font-size:18px;font-weight:600;color:#9CA3AF">2</span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">MON</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">3</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">TUE</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">4</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:linear-gradient(150deg,#FF6B6B,#FFA07A);box-shadow:0 8px 18px rgba(255,107,107,.32);padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.85)">WED</span><span style="font-size:18px;font-weight:700;color:#FFFFFF">5</span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#F0F0F3;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#C0C0C8">THU</span><span style="font-size:18px;font-weight:600;color:#C0C0C8;text-decoration:line-through">6</span></div>
+                <div style="width:52px;flex:none;border-radius:18px;background:#FFFFFF;border:1px solid #E5E7EB;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:11px;font-weight:500;color:#9CA3AF">FRI</span><span style="font-size:18px;font-weight:600;color:#1A1A2E">7</span><span style="width:5px;height:5px;border-radius:999px;background:#22C55E"></span></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:0 20px;font-size:14px;font-weight:600;color:#1A1A2E">Technician</div>
+              <div style="display:flex;gap:8px;padding:0 20px;overflow:hidden;opacity:.5">
+                <div style="flex:none;height:44px;border-radius:999px;background:#1A1A2E;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:13px;color:#FFFFFF">✦</span><span style="font-size:14px;font-weight:600;color:#FFFFFF">Any</span></div>
+                <div style="flex:none;height:44px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#FFD8C2,#FFC0C0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#B4453F">AM</span><span style="font-size:14px;font-weight:500;color:#1A1A2E">Anushik</span></div>
+                <div style="flex:none;height:44px;border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;display:flex;align-items:center;gap:8px;padding:0 14px 0 8px"><span style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#D7E7FF,#C9D8FF);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#4B63A8">DH</span><span style="font-size:14px;font-weight:500;color:#1A1A2E">Davit</span></div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 44px 40px;text-align:center">
+              <div style="width:96px;height:96px;border-radius:999px;background:linear-gradient(140deg,#FFECE2,#FFDADA);display:flex;align-items:center;justify-content:center">
+                <span style="width:38px;height:38px;border-radius:12px;border:2.5px solid #FF9E8A;position:relative;display:block"><span style="position:absolute;left:50%;top:6px;width:2.5px;height:12px;background:#FF9E8A;transform:translateX(-50%) rotate(35deg);transform-origin:bottom center"></span></span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">No availability on Wed 5</div>
+                <div style="font-size:15px;line-height:1.5;color:#6B7280;text-wrap:pretty">This service needs a 150-minute window. Try another date — Fri 7 has three openings.</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+                <div style="border-radius:999px;background:#FFFFFF;border:1.5px solid #FF6B6B;color:#FF6B6B;font-size:14px;font-weight:600;padding:11px 18px">Jump to Fri 7</div>
+                <div style="border-radius:999px;background:#FFFFFF;border:1px solid #E5E7EB;color:#6B7280;font-size:14px;font-weight:500;padding:11px 18px">Notify me</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:12px 20px;display:flex;flex-direction:column;gap:10px">
+            <div style="height:56px;border-radius:999px;background:#EEEEF1;display:flex;align-items:center;justify-content:center;color:#B7B7BF;font-size:17px;font-weight:600">Review booking</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.8</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Booking review</span></div>
+        <div data-screen-label="Booking review" style="width:390px;height:844px;border-radius:46px;background:#EDE9EA;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column;position:relative">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none;color:#6B6470">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #6B6470"></span><span style="width:16px;height:10px;border-radius:3px;background:#6B6470"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #6B6470"></span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:0">
+            <div style="padding:0 20px 14px;display:flex;flex-direction:column;gap:10px;opacity:.55">
+              <div style="height:14px;width:55%;border-radius:999px;background:#D8D2D4"></div>
+              <div style="height:12px;width:80%;border-radius:999px;background:#DEDADB"></div>
+            </div>
+            <div style="background:#F5F5F7;border-radius:28px 28px 0 0;box-shadow:0 -14px 40px rgba(26,26,46,.18);padding:12px 20px 12px;display:flex;flex-direction:column;gap:16px">
+              <div style="width:44px;height:5px;border-radius:999px;background:#D5D5DB;margin:0 auto"></div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:24px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">Review your booking</div>
+                <div style="font-size:14px;color:#6B7280">Nothing to pay now — pay at the venue.</div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;gap:14px;align-items:center">
+                  <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(140deg,#FFE0CC,#FFBDBD);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#C2554F;flex:none">F</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:600;color:#1A1A2E">Face massage</span><span style="font-size:13px;color:#6B7280">45 min · Face procedures</span></div>
+                  <span style="font-size:16px;font-weight:600;color:#1A1A2E">15,000 ֏</span>
+                </div>
+                <div style="height:1px;background:#F0F0F3"></div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Date</span><span style="font-weight:600;color:#1A1A2E">Tue, 4 Aug 2026</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Time</span><span style="font-weight:600;color:#1A1A2E">10:30 – 11:15</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Technician</span><span style="font-weight:600;color:#1A1A2E">Anushik Movsisyan</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:20px;font-size:14px"><span style="color:#6B7280;flex:none">Where</span><span style="font-weight:600;color:#1A1A2E;text-align:right">Lumière Beauty Studio<br><span style="font-weight:400;color:#6B7280">Babayan 36, Yerevan</span></span></div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <span style="font-size:13px;font-weight:500;color:#6B7280">Notes <span style="color:#9CA3AF;font-weight:400">· optional</span></span>
+                <div style="min-height:74px;border-radius:14px;background:#FFFFFF;border:1px solid #E5E7EB;padding:12px 14px;font-size:14px;line-height:1.5;color:#9CA3AF">Anything we should know? Allergies, styling goals, arriving with a friend…</div>
+              </div>
+
+              <div style="display:flex;gap:10px;align-items:flex-start;background:rgba(245,158,11,.09);border-radius:14px;padding:12px 14px">
+                <span style="width:8px;height:8px;border-radius:999px;background:#F59E0B;margin-top:5px;flex:none"></span>
+                <div style="font-size:13px;line-height:1.5;color:#6B7280">Free cancellation until <strong style="color:#1A1A2E;font-weight:600">8:30 on 4 Aug</strong>. After that a 3,000 ֏ fee may apply.</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">Confirm booking</div>
+                <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmed -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.9</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Booking confirmed</span></div>
+        <div data-screen-label="Booking confirmed" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:none;background:linear-gradient(160deg,#FF6B6B,#FFA07A);padding:0 24px 40px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:60px;left:34px;width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.6);transform:rotate(20deg)"></div>
+            <div style="position:absolute;top:120px;right:52px;width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.5);transform:rotate(-25deg)"></div>
+            <div style="position:absolute;top:200px;left:64px;width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.55)"></div>
+            <div style="position:absolute;top:96px;right:100px;width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.45)"></div>
+            <div style="height:54px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:#FFFFFF;padding:0 4px">9:41
+              <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #FFFFFF"></span><span style="width:16px;height:10px;border-radius:3px;background:#FFFFFF"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #FFFFFF"></span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:22px;padding-top:44px;position:relative">
+              <div style="width:96px;height:96px;border-radius:999px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center">
+                <div style="width:70px;height:70px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#FF6B6B">✓</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+                <div style="font-size:32px;font-weight:700;letter-spacing:-.03em;color:#FFFFFF">You're booked!</div>
+                <div style="font-size:15px;line-height:1.5;color:rgba(255,255,255,.9);max-width:280px;text-wrap:pretty">Anushik is expecting you. We'll remind you two hours before.</div>
+              </div>
+              <div style="background:rgba(255,255,255,.9);border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#F59E0B"></span><span style="font-size:13px;font-weight:600;color:#8A5A08">Pending provider confirmation</span></div>
+            </div>
+          </div>
+          <div style="flex:1;padding:22px 20px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600;color:#1A1A2E">Face massage</span><span style="font-size:15px;font-weight:600;color:#1A1A2E">15,000 ֏</span></div>
+              <div style="height:1px;background:#F0F0F3"></div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">When</span><span style="font-weight:600;color:#1A1A2E">Tue, 4 Aug · 10:30–11:15</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Technician</span><span style="font-weight:600;color:#1A1A2E">Anushik Movsisyan</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px"><span style="color:#6B7280;flex:none">Where</span><span style="font-weight:600;color:#1A1A2E;text-align:right">Lumière Beauty Studio, Babayan 36</span></div>
+              </div>
+            </div>
+            <div style="font-size:13px;line-height:1.5;color:#9CA3AF;text-align:center;padding:0 12px">Pay 15,000 ֏ at the venue. Free cancellation until 8:30 on 4 Aug.</div>
+          </div>
+          <div style="flex:none;padding:12px 20px;display:flex;flex-direction:column;gap:10px">
+            <div style="height:56px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 12px 26px rgba(255,107,107,.3);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:17px;font-weight:600">View my bookings</div>
+            <div style="height:52px;border-radius:999px;background:transparent;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:16px;font-weight:600">Back to home</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ BOOKINGS + PROFILE ══════════ -->
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#1A1A2E">04 — My bookings &amp; profile</div>
+      <div style="height:1px;flex:1;background:#DDDDE2"></div>
+      <div style="font-size:13px;color:#9CA3AF">status: pending · confirmed · completed · cancelled · no-show</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap">
+
+      <!-- Bookings list -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.10</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Bookings — upcoming</span></div>
+        <div data-screen-label="Bookings upcoming" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:18px;padding:8px 0 0">
+            <div style="padding:0 20px;font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">My bookings</div>
+            <div style="padding:0 20px">
+              <div style="background:#EBEBEF;border-radius:999px;padding:4px;display:flex;gap:4px">
+                <div style="flex:1;height:40px;border-radius:999px;background:#FFFFFF;box-shadow:0 2px 6px rgba(26,26,46,.08);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#1A1A2E">Upcoming</div>
+                <div style="flex:1;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#8B8B95">Past</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px;border-left:0">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;gap:12px;min-width:0">
+                    <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(140deg,#FFE0CC,#FFBDBD);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#C2554F;flex:none">F</div>
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:16px;font-weight:600;color:#1A1A2E">Face massage</span><span style="font-size:13px;color:#6B7280">Anushik Movsisyan</span></div>
+                  </div>
+                  <span style="flex:none;border-radius:999px;background:rgba(245,158,11,.14);color:#B4790B;font-size:12px;font-weight:600;padding:5px 11px">Pending</span>
+                </div>
+                <div style="height:1px;background:#F0F0F3"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">Tue, 4 Aug · 10:30</span><span style="font-size:12px;color:#9CA3AF">Lumière Beauty Studio</span></div>
+                  <span style="font-size:14px;font-weight:600;color:#1A1A2E">15,000 ֏</span>
+                </div>
+              </div>
+
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;gap:12px;min-width:0">
+                    <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(140deg,#E7DEFF,#FFD6E8);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#7A63B8;flex:none">A</div>
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:16px;font-weight:600;color:#1A1A2E">Aroma Spa Ritual</span><span style="font-size:13px;color:#6B7280">Lilit Sargsyan</span></div>
+                  </div>
+                  <span style="flex:none;border-radius:999px;background:rgba(59,130,246,.14);color:#2563EB;font-size:12px;font-weight:600;padding:5px 11px">Confirmed</span>
+                </div>
+                <div style="height:1px;background:#F0F0F3"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">Sat, 15 Aug · 16:00</span><span style="font-size:12px;color:#9CA3AF">Lumière Beauty Studio</span></div>
+                  <span style="font-size:14px;font-weight:600;color:#1A1A2E">25,000 ֏</span>
+                </div>
+              </div>
+
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C0C0C8;margin-top:4px">past tab — same card, muted</div>
+              <div style="background:#FFFFFF;border-radius:20px;padding:16px;box-shadow:0 4px 20px rgba(26,26,46,.04);display:flex;flex-direction:column;gap:12px;opacity:.75">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;gap:12px;min-width:0">
+                    <div style="width:46px;height:46px;border-radius:14px;background:#F0F0F3;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#9CA3AF;flex:none">G</div>
+                    <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:600;color:#1A1A2E">Gel Manicure</span><span style="font-size:13px;color:#6B7280">Davit Hakobyan</span></div>
+                  </div>
+                  <span style="flex:none;border-radius:999px;background:rgba(34,197,94,.14);color:#15803D;font-size:12px;font-weight:600;padding:5px 11px">Completed</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600;color:#1A1A2E">Fri, 11 Jul · 12:00</span><span style="font-size:12px;color:#9CA3AF">Lumière Beauty Studio</span></div>
+                  <span style="font-size:13px;font-weight:600;color:#FF6B6B">Book again</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookings empty -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.10v</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Bookings — empty tab</span></div>
+        <div data-screen-label="Bookings empty" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:18px;padding:8px 0 0">
+            <div style="padding:0 20px;font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">My bookings</div>
+            <div style="padding:0 20px">
+              <div style="background:#EBEBEF;border-radius:999px;padding:4px;display:flex;gap:4px">
+                <div style="flex:1;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#8B8B95">Upcoming</div>
+                <div style="flex:1;height:40px;border-radius:999px;background:#FFFFFF;box-shadow:0 2px 6px rgba(26,26,46,.08);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#1A1A2E">Past</div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 46px 60px;text-align:center">
+              <div style="width:104px;height:104px;border-radius:34px;background:linear-gradient(140deg,#FFECE2,#FFDADA);display:flex;align-items:center;justify-content:center">
+                <div style="width:44px;height:44px;border-radius:14px;border:2.5px solid #FF9E8A;display:flex;flex-direction:column;justify-content:flex-end;padding:6px;gap:4px"><span style="height:2.5px;border-radius:999px;background:#FF9E8A"></span><span style="height:2.5px;width:60%;border-radius:999px;background:#FF9E8A"></span></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">No past visits yet</div>
+                <div style="font-size:15px;line-height:1.5;color:#6B7280;text-wrap:pretty">Once you've been in, your history lands here — with one-tap rebooking.</div>
+              </div>
+              <div style="height:50px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);box-shadow:0 10px 24px rgba(255,107,107,.3);color:#FFFFFF;font-size:16px;font-weight:600;display:flex;align-items:center;padding:0 26px">Browse services</div>
+            </div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking detail -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.10b</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Booking detail</span></div>
+        <div data-screen-label="Booking detail" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:none;padding:4px 20px 10px;display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 8px rgba(26,26,46,.06);display:flex;align-items:center;justify-content:center;font-size:20px;color:#1A1A2E;flex:none">‹</div>
+            <div style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Booking details</div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:8px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="background:#FFFFFF;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="border-radius:999px;background:rgba(59,130,246,.14);color:#2563EB;font-size:12px;font-weight:600;padding:6px 12px">Confirmed</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">#BK-20826</span>
+              </div>
+              <div style="display:flex;gap:14px;align-items:center">
+                <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(140deg,#E7DEFF,#FFD6E8);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#7A63B8;flex:none">A</div>
+                <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:19px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Aroma Spa Ritual</span><span style="font-size:13px;color:#6B7280">90 min · Spa · 25,000 ֏</span></div>
+              </div>
+              <div style="height:1px;background:#F0F0F3"></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Date</span><span style="font-weight:600;color:#1A1A2E">Sat, 15 Aug 2026</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Time</span><span style="font-weight:600;color:#1A1A2E">16:00 – 17:30</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#6B7280">Technician</span><span style="font-weight:600;color:#1A1A2E">Lilit Sargsyan</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px"><span style="color:#6B7280;flex:none">Where</span><span style="font-weight:600;color:#1A1A2E;text-align:right">Lumière Beauty Studio<br><span style="font-weight:400;color:#6B7280">Babayan 36, Yerevan</span></span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px"><span style="color:#6B7280;flex:none">Notes</span><span style="font-weight:400;color:#1A1A2E;text-align:right">Sensitive skin — no citrus oils.</span></div>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:16px;padding:14px;box-shadow:0 4px 18px rgba(26,26,46,.05);display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#F59E0B"></span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Cancellation policy</span></div>
+              <div style="font-size:13px;line-height:1.55;color:#6B7280">Free until <strong style="color:#1A1A2E;font-weight:600">14:00 on 15 Aug</strong>. Later cancellations may incur a 5,000 ֏ fee.</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#FFFFFF;border-radius:16px;padding:14px;box-shadow:0 4px 18px rgba(26,26,46,.05)">
+              <span style="width:34px;height:34px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:15px;flex:none">✱</span>
+              <span style="font-size:14px;color:#6B7280;flex:1">Pay 25,000 ֏ in person at the venue.</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:12px 20px;display:flex;flex-direction:column;gap:10px">
+            <div style="height:52px;border-radius:999px;background:#FFFFFF;border:1.5px solid #EF4444;display:flex;align-items:center;justify-content:center;color:#EF4444;font-size:16px;font-weight:600">Cancel booking</div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9CA3AF">3.11</span><span style="font-size:14px;font-weight:600;color:#1A1A2E">Profile</span></div>
+        <div data-screen-label="Profile" style="width:390px;height:844px;border-radius:46px;background:#F5F5F7;box-shadow:0 30px 70px rgba(26,26,46,.16);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:17px;height:11px;border-radius:2px;border:1.5px solid #1A1A2E;opacity:.85"></span><span style="width:16px;height:10px;border-radius:3px;background:#1A1A2E;opacity:.85"></span><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid #1A1A2E;opacity:.85"></span></div>
+          </div>
+          <div style="flex:1;padding:12px 20px 0;display:flex;flex-direction:column;gap:22px">
+            <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#1A1A2E">Profile</div>
+            <div style="background:#FFFFFF;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;align-items:center;gap:14px">
+              <div style="width:62px;height:62px;border-radius:999px;background:linear-gradient(135deg,#FF6B6B,#FFA07A);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#FFFFFF;flex:none">AP</div>
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <span style="font-size:19px;font-weight:600;letter-spacing:-.02em;color:#1A1A2E">Ani Petrosyan</span>
+                <span style="font-size:13px;color:#6B7280">ani.petrosyan@gmail.com</span>
+                <span style="font-size:12px;color:#9CA3AF">+374 77 123 456</span>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:20px;box-shadow:0 4px 20px rgba(26,26,46,.06);display:flex;flex-direction:column;overflow:hidden">
+              <div style="height:58px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:34px;height:34px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:14px;flex:none">●</span><span style="flex:1;font-size:16px;font-weight:500;color:#1A1A2E">Personal info</span><span style="font-size:19px;color:#C8C8CF">›</span></div>
+              <div style="height:1px;background:#F3F3F6;margin-left:62px"></div>
+              <div style="height:58px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:34px;height:34px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:14px;flex:none">◔</span><span style="flex:1;font-size:16px;font-weight:500;color:#1A1A2E">Notifications</span><span style="font-size:12px;color:#9CA3AF;margin-right:6px">SMS + push</span><span style="font-size:19px;color:#C8C8CF">›</span></div>
+              <div style="height:1px;background:#F3F3F6;margin-left:62px"></div>
+              <div style="height:58px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:34px;height:34px;border-radius:12px;background:#F5F5F7;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:14px;flex:none">?</span><span style="flex:1;font-size:16px;font-weight:500;color:#1A1A2E">Help &amp; support</span><span style="font-size:19px;color:#C8C8CF">›</span></div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:20px;box-shadow:0 4px 20px rgba(26,26,46,.06);height:58px;display:flex;align-items:center;justify-content:center"><span style="font-size:16px;font-weight:600;color:#EF4444">Log out</span></div>
+            <div style="font-size:12px;color:#C0C0C8;text-align:center">BookIt v1.0 · Yerevan, Armenia</div>
+          </div>
+          <div style="flex:none;background:#FFFFFF;border-top:1px solid #E5E7EB;padding:10px 24px 0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:7px;border:2px solid #9CA3AF"></span><span style="font-size:11px;font-weight:500;color:#9CA3AF">Bookings</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:999px;border:2px solid #FF6B6B;background:rgba(255,107,107,.14)"></span><span style="font-size:11px;font-weight:600;color:#FF6B6B">Profile</span></div>
+            </div>
+            <div style="width:134px;height:5px;border-radius:999px;background:#1A1A2E;opacity:.25;margin:0 auto 8px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

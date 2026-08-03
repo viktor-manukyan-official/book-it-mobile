@@ -42,3 +42,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Firebase admin service-account keys (backend-only, never in mobile)
+*firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist
+.env
