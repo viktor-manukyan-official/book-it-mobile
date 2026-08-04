@@ -21,10 +21,32 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: "Home",
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
           title: "Explore",
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "compass" : "compass-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bookings"
+        options={{
+          title: "Bookings",
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? "calendar" : "calendar-outline"}
               size={size}
               color={color}
             />

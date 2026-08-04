@@ -3,8 +3,13 @@ import { Alert, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/colors";
-import { PROFILE_MENU_ITEMS } from "../../data/mock";
 import { useAuth } from "../../src/hooks/useAuth";
+
+const PROFILE_MENU_ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
+  { icon: "time-outline", label: "My History" },
+  { icon: "language-outline", label: "Language Selection" },
+  { icon: "help-circle-outline", label: "Help & Support" },
+];
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();

@@ -17,9 +17,12 @@ function RootNavigator() {
       return;
     }
     const inAuthGroup = segments[0] === "(auth)";
-    if (!isAuthenticated && !inAuthGroup) {
-      // Unauthenticated users are redirected to the phone-entry screen.
-      router.replace("/(auth)/phone");
+    // Legal pages (Terms / Privacy) are public — reachable before sign-in and
+    // from settings after — so they are exempt from the auth redirect.
+    const inLegalGroup = segments[0] === "legal";
+    if (!isAuthenticated && !inAuthGroup && !inLegalGroup) {
+      // Unauthenticated users are redirected to the welcome / landing screen.
+      router.replace("/(auth)/welcome");
     } else if (isAuthenticated && inAuthGroup) {
       // Authenticated users should never sit in the auth flow.
       router.replace("/(tabs)");
@@ -39,6 +42,12 @@ function RootNavigator() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="salon/[id]" />
+      <Stack.Screen name="service/[id]" />
+      <Stack.Screen name="booking/time" />
+      <Stack.Screen name="booking/review" options={{ presentation: "modal" }} />
+      <Stack.Screen name="booking/confirmed" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="legal/terms" />
+      <Stack.Screen name="legal/privacy" />
     </Stack>
   );
 }

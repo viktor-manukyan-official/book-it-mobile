@@ -74,7 +74,9 @@ export default function PhoneEntryScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.header}>
-          <BackButton onPress={() => router.back()} />
+          {/* `phone` is the auth entry route (reached via router.replace), so
+              there is usually no history to pop. Only show Back when we can. */}
+          {router.canGoBack() ? <BackButton onPress={() => router.back()} /> : null}
         </View>
 
         <View style={styles.content}>
