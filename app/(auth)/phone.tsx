@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArmeniaFlag, Colors } from "../../constants/colors";
 import { BackButton } from "../../src/components/BackButton";
 import { GradientButton } from "../../src/components/GradientButton";
-import { phoneExists } from "../../src/services/authApi";
+import { userExists } from "../../src/services/authApi";
 import { GraphQLRequestError } from "../../src/services/graphqlClient";
 import { sendOtp, setPendingConfirmation } from "../../src/services/firebase";
 
@@ -49,7 +49,7 @@ export default function PhoneEntryScreen() {
     setError(null);
     setSubmitting(true);
     try {
-      const exists = await phoneExists(e164);
+      const exists = await userExists(e164);
       const confirmation = await sendOtp(e164);
       setPendingConfirmation(confirmation);
       router.push({

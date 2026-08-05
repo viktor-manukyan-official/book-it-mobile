@@ -2,9 +2,9 @@ import { graphqlRequest } from "./graphqlClient";
 
 import type { AuthPayload, FirebaseAuthInput } from "../types/auth";
 
-const PHONE_EXISTS_QUERY = /* GraphQL */ `
-  query PhoneExists($phone: String!) {
-    phoneExists(phone: $phone)
+const USER_EXISTS_QUERY = /* GraphQL */ `
+  query UserExists($phone: String!) {
+    userExists(phone: $phone)
   }
 `;
 
@@ -30,14 +30,14 @@ const AUTHENTICATE_MUTATION = /* GraphQL */ `
   }
 `;
 
-/** Check whether a customer with this E.164 phone already exists. */
-export async function phoneExists(phone: string): Promise<boolean> {
-  const data = await graphqlRequest<{ phoneExists: boolean }>(
-    PHONE_EXISTS_QUERY,
+/** True only for a REGISTERED customer with this phone (login vs. register branch). */
+export async function userExists(phone: string): Promise<boolean> {
+  const data = await graphqlRequest<{ userExists: boolean }>(
+    USER_EXISTS_QUERY,
     { phone },
     { withAuth: false },
   );
-  return data.phoneExists;
+  return data.userExists;
 }
 
 /**

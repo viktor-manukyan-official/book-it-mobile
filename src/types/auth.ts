@@ -1,5 +1,5 @@
 // Shared auth types — mirror the book-it-backend public GraphQL contract
-// (see tasks/BOOK-54 03-backend.md: phoneExists + authenticateWithFirebase).
+// (see tasks/BOOK-54 03-backend.md: userExists + authenticateWithFirebase).
 
 export type Gender = "male" | "female" | "other";
 
