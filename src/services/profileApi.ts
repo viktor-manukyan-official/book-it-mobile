@@ -11,21 +11,33 @@ export interface NotificationPreferences {
   promotions: boolean;
 }
 
+const USER_FIELDS = /* GraphQL */ `
+  id
+  email
+  phone
+  firstName
+  lastName
+  profileImageUrl
+  emailVerified
+  mustChangePassword
+  roles { id name }
+`;
+
+const ME_QUERY = /* GraphQL */ `
+  query Me { me { ${USER_FIELDS} } }
+`;
+
 const UPDATE_PROFILE_MUTATION = /* GraphQL */ `
   mutation UpdateProfile($input: UpdateProfileInput!) {
-    updateProfile(input: $input) {
-      id
-      email
-      phone
-      firstName
-      lastName
-      profileImageUrl
-      emailVerified
-      mustChangePassword
-      roles { id name }
-    }
+    updateProfile(input: $input) { ${USER_FIELDS} }
   }
 `;
+
+/** Refresh the current user profile from the server (hydrates phone, etc.). */
+export async function fetchMe(): Promise<UserProfile> {
+  const data = await graphqlRequest<{ me: UserProfile }>(ME_QUERY);
+  return data.me;
+}
 
 const PREFERENCES_FIELDS = /* GraphQL */ `
   bookingConfirmations

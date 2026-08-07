@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors, PrimaryGradient } from "../../constants/colors";
 import { useAuth } from "../../src/hooks/useAuth";
-import { updateProfile } from "../../src/services/profileApi";
+import { fetchMe, updateProfile } from "../../src/services/profileApi";
 
 function initials(name: string): string {
   return name.split(" ").map((w) => w[0]).filter(Boolean).join("").slice(0, 2).toUpperCase();
@@ -33,6 +33,19 @@ export default function PersonalInfoScreen() {
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [saving, setSaving] = useState(false);
+
+  // Hydrate from the server (the stored session may predate the phone field).
+  useEffect(() => {
+    let active = true;
+    void fetchMe()
+      .then((me) => {
+        if (active) void updateUser(me);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [updateUser]);
 
   const dirty =
     firstName.trim() !== (user?.firstName ?? "") ||
@@ -77,18 +90,17 @@ export default function PersonalInfoScreen() {
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.avatarWrap}>
-          {user?.profileImageUrl ? null : (
-            <LinearGradient colors={PrimaryGradient} style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {initials(`${firstName} ${lastName}` || "?")}
-              </Text>
-            </LinearGradient>
-          )}
+          <LinearGradient colors={PrimaryGradient} style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials(`${firstName} ${lastName}` || "?")}</Text>
+          </LinearGradient>
           <TouchableOpacity
+            style={styles.editBadge}
             onPress={() => Alert.alert("Change photo", "Photo upload is coming soon.")}
             accessibilityRole="button"
+            accessibilityLabel="Change photo"
+            hitSlop={8}
           >
-            <Text style={styles.changePhoto}>Change photo</Text>
+            <Ionicons name="pencil" size={14} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -165,10 +177,27 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: "700", letterSpacing: -0.4, color: Colors.textPrimary },
   body: { padding: 20, gap: 16 },
-  avatarWrap: { alignItems: "center", gap: 8 },
+  avatarWrap: { alignItems: "center", justifyContent: "center", alignSelf: "center" },
   avatar: { width: 96, height: 96, borderRadius: 999, alignItems: "center", justifyContent: "center" },
   avatarText: { fontSize: 32, fontWeight: "800", color: Colors.white },
-  changePhoto: { fontSize: 15, fontWeight: "700", color: Colors.primary },
+  editBadge: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    backgroundColor: Colors.card,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: Colors.background,
+    shadowColor: "#1A1A2E",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
 
   nameRow: { flexDirection: "row", gap: 12 },
   half: { flex: 1 },
