@@ -4,6 +4,7 @@ import type {
   ExploreFilter,
   ExploreResult,
   SearchSuggestions,
+  ServiceDetail,
   VenueCard,
   VenueDetail,
 } from "../types/catalog";
@@ -201,6 +202,36 @@ export async function fetchExploreVenues(
 export async function fetchVenue(id: string): Promise<VenueDetail> {
   const data = await graphqlRequest<{ venue: VenueDetail }>(VENUE_QUERY, { id });
   return data.venue;
+}
+
+const SERVICE_DETAIL_QUERY = /* GraphQL */ `
+  query ServiceDetail($id: ID!) {
+    serviceDetail(id: $id) {
+      id
+      name
+      description
+      duration
+      price
+      currency
+      categoryName
+      venueId
+      venueName
+      customerCanSelectTechnician
+      freeCancelMinutes
+      cancellationFee
+      cancellationFeeType
+      rating
+      reviewCount
+    }
+  }
+`;
+
+/** Public service details for the customer app (BOOK-71). */
+export async function fetchServiceDetail(id: string): Promise<ServiceDetail> {
+  const data = await graphqlRequest<{ serviceDetail: ServiceDetail }>(SERVICE_DETAIL_QUERY, {
+    id,
+  });
+  return data.serviceDetail;
 }
 
 /**

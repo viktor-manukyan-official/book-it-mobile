@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -11,135 +12,228 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors, PrimaryGradient } from "../../constants/colors";
+import { useServiceDetail } from "../../src/hooks/useServiceDetail";
+import type { ServiceDetail } from "../../src/types/catalog";
 
-// ⚠️ UI-only screen: static mock data on the frontend (no API).
-// Values fall back to the "Face massage" mockup when no params are passed.
-const MOCK = {
-  name: "Face massage",
-  category: "Face procedures",
-  rating: 4.9,
-  reviewCount: 128,
-  duration: 45,
-  price: 15000,
-  about:
-    "A relaxing 45-minute facial massage with cleansing, lymphatic-drainage techniques and aroma oils. Improves circulation and leaves skin visibly refreshed.",
-  cancelWindow: 120,
-  cancelFee: 3000,
-};
+const money = (amount: number) => `${amount.toLocaleString("en-US")} ֏`;
 
-function money(amount: number): string {
-  return `${amount.toLocaleString("en-US")} ֏`;
+// Category-derived hero gradients (fallback when a service has no image).
+const HERO_GRADIENTS: [string, string, string][] = [
+  ["#FFB88C", "#FF7E6B", "#FF6B6B"],
+  ["#C9E8D8", "#9FD6BC", "#7FC3A3"],
+  ["#D7E7FF", "#AEC2EE", "#8FA9E6"],
+  ["#EEDBF6", "#E0C3F0", "#C9A5E4"],
+  ["#FCE7C4", "#F6D79A", "#EBC072"],
+];
+
+function heroGradient(key: string | null | undefined): [string, string, string] {
+  if (!key) return HERO_GRADIENTS[0];
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return HERO_GRADIENTS[hash % HERO_GRADIENTS.length];
 }
 
-export default function ServiceDetailsScreen() {
+function cancellationText(s: ServiceDetail): string {
+  const window = `Free cancellation up to ${s.freeCancelMinutes} min before your slot.`;
+  if (!s.cancellationFee || s.cancellationFee <= 0) return window;
+  const fee =
+    s.cancellationFeeType === "percentage"
+      ? `${s.cancellationFee}%`
+      : money(s.cancellationFee);
+  return `${window} After that a ${fee} fee may apply.`;
+}
+
+export default function ServiceDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{
-    name?: string;
-    category?: string;
-    duration?: string;
-    price?: string;
-  }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { service, loading, error, notFound, retry } = useServiceDetail(id);
+  const [descExpanded, setDescExpanded] = useState(false);
 
-  const name = params.name ?? MOCK.name;
-  const category = params.category ?? MOCK.category;
-  const duration = params.duration ? Number(params.duration) : MOCK.duration;
-  const price = params.price ? Number(params.price) : MOCK.price;
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace("/"));
+
+  const BackButton = (
+    <TouchableOpacity
+      style={styles.circleButton}
+      onPress={goBack}
+      accessibilityRole="button"
+      accessibilityLabel="Go back"
+      hitSlop={8}
+    >
+      <Ionicons name="chevron-back" size={22} color="#8A3B32" />
+    </TouchableOpacity>
+  );
+
+  // Not-found (removed / deactivated service) — full-screen state.
+  if (notFound) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+        <Text style={styles.notFoundHeading}>Service not found</Text>
+        <Text style={styles.dimText}>
+          This service is no longer available. It may have been removed by the venue.
+        </Text>
+        <TouchableOpacity style={styles.secondaryButton} onPress={goBack}>
+          <Text style={styles.secondaryButtonText}>Back to venue</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (loading) {
+    const g = heroGradient(id);
+    return (
+      <View style={styles.container}>
+        <LinearGradient colors={g} style={[styles.hero, { paddingTop: insets.top + 8 }]}>
+          <View style={styles.heroTopRow}>{BackButton}</View>
+        </LinearGradient>
+        <View style={styles.factsRow}>
+          <View style={[styles.factCard, styles.skel]} />
+          <View style={[styles.factCard, styles.skel]} />
+        </View>
+        <View style={styles.body}>
+          <View style={[styles.skelLine, { width: "50%", height: 18 }]} />
+          <View style={[styles.skelLine, { width: "90%" }]} />
+          <View style={[styles.skelLine, { width: "80%" }]} />
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !service) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+        <Text style={styles.dimText}>{error ?? "Something went wrong."}</Text>
+        <TouchableOpacity style={styles.secondaryButton} onPress={retry}>
+          <Text style={styles.secondaryButtonText}>Try again</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const g = heroGradient(service.categoryName);
+  const showReadMore = (service.description?.length ?? 0) > 160;
+
+  const chooseTime = () =>
+    router.push({
+      pathname: "/booking/time",
+      params: {
+        serviceId: service.id,
+        name: service.name,
+        duration: String(service.duration),
+        price: String(service.price),
+      },
+    });
 
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
       >
-        {/* Hero / photo placeholder */}
-        <LinearGradient
-          colors={["#FBD9CC", "#F3A88F", "#EE8E77"]}
-          start={{ x: 0.2, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 8 }]}
-        >
-          <TouchableOpacity
-            style={styles.circleButton}
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="chevron-back" size={22} color="#8A3B32" />
-          </TouchableOpacity>
-
-          <Text style={styles.photoPlaceholder}>SERVICE PHOTO PLACEHOLDER</Text>
-
-          <View style={styles.pillRow}>
-            <View style={styles.pill}>
-              <Text style={styles.pillText}>{category}</Text>
+        {/* Hero */}
+        <LinearGradient colors={g} style={[styles.hero, { paddingTop: insets.top + 8 }]}>
+          <View style={styles.heroTopRow}>{BackButton}</View>
+          <Text style={styles.heroPlaceholder}>SERVICE PHOTO PLACEHOLDER</Text>
+          <View style={styles.heroBottom}>
+            <View style={styles.pillRow}>
+              {service.categoryName ? (
+                <View style={styles.pill}>
+                  <Text style={styles.pillText}>{service.categoryName}</Text>
+                </View>
+              ) : null}
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>
+                  {service.rating != null
+                    ? `★ ${service.rating.toFixed(1)}${
+                        service.reviewCount != null ? ` · ${service.reviewCount}` : ""
+                      }`
+                    : "New"}
+                </Text>
+              </View>
             </View>
-            <View style={styles.pill}>
-              <Text style={styles.pillText}>
-                ★ {MOCK.rating.toFixed(1)} · {MOCK.reviewCount}
-              </Text>
-            </View>
+            <Text style={styles.serviceName} numberOfLines={2}>
+              {service.name}
+            </Text>
           </View>
-          <Text style={styles.title}>{name}</Text>
         </LinearGradient>
 
-        {/* Body sheet */}
-        <View style={styles.sheet}>
-          <View style={styles.statRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Duration</Text>
-              <Text style={styles.statValue}>{duration} min</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Price</Text>
-              <Text style={styles.statValue}>{money(price)}</Text>
-            </View>
+        {/* Key facts */}
+        <View style={styles.factsRow}>
+          <View style={styles.factCard}>
+            <Text style={styles.factLabel}>Duration</Text>
+            <Text style={styles.factValue}>{service.duration} min</Text>
           </View>
+          <View style={styles.factCard}>
+            <Text style={styles.factLabel}>Price</Text>
+            <Text style={styles.factValue}>{money(service.price)}</Text>
+          </View>
+        </View>
 
-          <Text style={styles.sectionTitle}>About this service</Text>
-          <Text style={styles.about}>{MOCK.about}</Text>
+        <View style={styles.body}>
+          {/* About */}
+          {service.description ? (
+            <View style={styles.aboutBlock}>
+              <Text style={styles.sectionHeading}>About this service</Text>
+              <Text
+                style={styles.aboutText}
+                numberOfLines={descExpanded ? undefined : 4}
+              >
+                {service.description}
+              </Text>
+              {showReadMore ? (
+                <TouchableOpacity onPress={() => setDescExpanded((v) => !v)} hitSlop={8}>
+                  <Text style={styles.readMore}>{descExpanded ? "Read less" : "Read more"}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
 
-          {/* Choose technician */}
+          {/* Technician choice */}
           <View style={styles.infoCard}>
-            <View style={styles.checkIcon}>
-              <Ionicons name="checkmark" size={18} color={Colors.primary} />
+            <View style={styles.infoIcon}>
+              <Ionicons
+                name={service.customerCanSelectTechnician ? "checkmark" : "person"}
+                size={18}
+                color={Colors.primary}
+              />
             </View>
             <View style={styles.infoBody}>
-              <Text style={styles.infoTitle}>You can choose your technician</Text>
-              <Text style={styles.infoSub}>Or let us assign the next available</Text>
+              {service.customerCanSelectTechnician ? (
+                <>
+                  <Text style={styles.infoTitle}>You can choose your technician</Text>
+                  <Text style={styles.infoSub}>Or let us assign the next available</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.infoTitle}>The venue assigns your technician</Text>
+                  <Text style={styles.infoSub}>Handled automatically for this service</Text>
+                </>
+              )}
             </View>
           </View>
 
           {/* Cancellation policy */}
-          <View style={styles.policyCard}>
-            <View style={styles.policyHead}>
-              <View style={styles.policyDot} />
+          <View style={styles.infoCard}>
+            <View style={[styles.dot, { backgroundColor: Colors.star }]} />
+            <View style={styles.infoBody}>
               <Text style={styles.infoTitle}>Cancellation policy</Text>
+              <Text style={styles.infoSub}>{cancellationText(service)}</Text>
             </View>
-            <Text style={styles.policyText}>
-              Free cancellation up to <Text style={styles.bold}>{MOCK.cancelWindow} min</Text>{" "}
-              before your slot. After that a <Text style={styles.bold}>{money(MOCK.cancelFee)}</Text>{" "}
-              fee may apply.
-            </Text>
           </View>
 
+          {/* Pay at venue */}
           <View style={styles.payRow}>
-            <View style={styles.payDot} />
+            <View style={[styles.dot, { backgroundColor: Colors.textLight }]} />
             <Text style={styles.payText}>Pay at the venue — no card needed to book.</Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Sticky CTA */}
-      <View style={[styles.ctaBar, { paddingBottom: insets.bottom + 12 }]}>
+      {/* Action bar */}
+      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() =>
-            router.push({
-              pathname: "/booking/time",
-              params: { name, duration: String(duration), price: String(price) },
-            })
-          }
+          onPress={chooseTime}
           accessibilityRole="button"
           accessibilityLabel="Choose a time"
         >
@@ -147,7 +241,7 @@ export default function ServiceDetailsScreen() {
             colors={PrimaryGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.ctaButton}
+            style={styles.cta}
           >
             <Text style={styles.ctaText}>Choose a time</Text>
           </LinearGradient>
@@ -158,140 +252,111 @@ export default function ServiceDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.card },
+  container: { flex: 1, backgroundColor: Colors.background },
+  centered: { justifyContent: "center", alignItems: "center", padding: 24, gap: 14 },
+  dimText: { fontSize: 15, color: Colors.textSecondary, textAlign: "center", lineHeight: 22 },
+  notFoundHeading: { fontSize: 20, fontWeight: "700", color: Colors.textPrimary },
 
-  hero: { height: 468, paddingHorizontal: 20, paddingBottom: 20, justifyContent: "flex-start" },
+  hero: { minHeight: 300, paddingHorizontal: 20, paddingBottom: 20, justifyContent: "space-between" },
+  heroTopRow: { flexDirection: "row" },
   circleButton: {
     width: 44,
     height: 44,
     borderRadius: 15,
-    backgroundColor: "rgba(255,255,255,.85)",
+    backgroundColor: "rgba(255,255,255,.8)",
     alignItems: "center",
     justifyContent: "center",
   },
-  photoPlaceholder: {
-    position: "absolute",
-    top: "40%",
-    left: 0,
-    right: 0,
+  heroPlaceholder: {
     textAlign: "center",
+    letterSpacing: 3,
     fontSize: 12,
-    letterSpacing: 2,
-    fontWeight: "500",
-    color: "rgba(61,26,22,.35)",
+    color: "rgba(255,255,255,.7)",
   },
-  pillRow: { flexDirection: "row", gap: 10, marginTop: "auto" },
+  heroBottom: { gap: 12 },
+  pillRow: { flexDirection: "row", gap: 8 },
   pill: {
-    height: 34,
+    backgroundColor: "rgba(255,255,255,.85)",
     borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,.75)",
     paddingHorizontal: 14,
+    height: 34,
     justifyContent: "center",
   },
-  pillText: { fontSize: 13, fontWeight: "600", color: "#3D1A16" },
-  title: {
-    fontSize: 34,
-    fontWeight: "800",
-    letterSpacing: -0.8,
-    color: "#3D1A16",
-    marginTop: 12,
-  },
+  pillText: { fontSize: 13, fontWeight: "600", color: "#8A3B32" },
+  serviceName: { fontSize: 30, fontWeight: "800", letterSpacing: -0.6, color: "#2B1512" },
 
-  sheet: {
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -24,
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    gap: 16,
-  },
-  statRow: { flexDirection: "row", gap: 12 },
-  statCard: {
+  factsRow: { flexDirection: "row", gap: 12, paddingHorizontal: 20, marginTop: 20 },
+  factCard: {
     flex: 1,
+    minHeight: 74,
     backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 16,
     gap: 6,
     shadowColor: "#1A1A2E",
     shadowOpacity: 0.05,
-    shadowRadius: 18,
+    shadowRadius: 16,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F1F1F4",
   },
-  statLabel: { fontSize: 13, color: Colors.textLight },
-  statValue: { fontSize: 20, fontWeight: "700", color: Colors.textPrimary },
+  factLabel: { fontSize: 13, color: Colors.textLight },
+  factValue: { fontSize: 20, fontWeight: "700", color: Colors.textPrimary },
 
-  sectionTitle: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary, marginTop: 4 },
-  about: { fontSize: 15, lineHeight: 24, color: Colors.textSecondary },
+  body: { paddingHorizontal: 20, paddingTop: 22, gap: 18 },
+  aboutBlock: { gap: 8 },
+  sectionHeading: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary },
+  aboutText: { fontSize: 15, lineHeight: 24, color: Colors.textSecondary },
+  readMore: { fontSize: 14, fontWeight: "600", color: Colors.primary },
 
   infoCard: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 12,
     backgroundColor: Colors.card,
     borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#F1F1F4",
+    padding: 16,
+    alignItems: "flex-start",
     shadowColor: "#1A1A2E",
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  checkIcon: {
-    width: 40,
-    height: 40,
+  infoIcon: {
+    width: 34,
+    height: 34,
     borderRadius: 12,
-    backgroundColor: "#FDE3DB",
+    backgroundColor: "#FCE3DD",
     alignItems: "center",
     justifyContent: "center",
   },
-  infoBody: { flex: 1, minWidth: 0, gap: 2 },
+  infoBody: { flex: 1, gap: 3 },
   infoTitle: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
-  infoSub: { fontSize: 13, color: Colors.textSecondary },
+  infoSub: { fontSize: 14, lineHeight: 21, color: Colors.textSecondary },
+  dot: { width: 8, height: 8, borderRadius: 999, marginTop: 6 },
 
-  policyCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 14,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#F1F1F4",
-    shadowColor: "#1A1A2E",
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
-  },
-  policyHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  policyDot: { width: 7, height: 7, borderRadius: 999, backgroundColor: Colors.star },
-  policyText: { fontSize: 14, lineHeight: 22, color: Colors.textSecondary },
-  bold: { fontWeight: "700", color: Colors.textPrimary },
-
-  payRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 2 },
-  payDot: { width: 6, height: 6, borderRadius: 999, backgroundColor: Colors.textLight },
+  payRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 2 },
   payText: { fontSize: 13, color: Colors.textLight },
 
-  ctaBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+  actionBar: {
     backgroundColor: Colors.card,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
     paddingHorizontal: 20,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F1F4",
   },
-  ctaButton: {
-    height: 56,
+  cta: { height: 54, borderRadius: 999, justifyContent: "center", alignItems: "center" },
+  ctaText: { fontSize: 16, fontWeight: "700", color: Colors.white },
+
+  secondaryButton: {
+    minHeight: 44,
     borderRadius: 999,
-    alignItems: "center",
+    paddingHorizontal: 24,
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.primary,
   },
-  ctaText: { fontSize: 17, fontWeight: "700", color: Colors.white },
+  secondaryButtonText: { fontSize: 15, fontWeight: "600", color: Colors.white },
+
+  skel: { backgroundColor: "#ECECEF" },
+  skelLine: { height: 12, borderRadius: 6, backgroundColor: "#ECECEF" },
 });

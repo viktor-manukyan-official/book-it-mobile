@@ -69,6 +69,25 @@ export interface ExploreResult {
   categories: VenueCategory[];
 }
 
+// Service details (BOOK-71).
+export interface ServiceDetail {
+  id: string;
+  name: string;
+  description?: string | null;
+  duration: number;
+  price: number;
+  currency: string;
+  categoryName?: string | null;
+  venueId: string;
+  venueName: string;
+  customerCanSelectTechnician: boolean;
+  freeCancelMinutes: number;
+  cancellationFee: number;
+  cancellationFeeType: string; // 'fixed' | 'percentage'
+  rating?: number | null;
+  reviewCount?: number | null;
+}
+
 export interface ExploreFilter {
   search?: string;
   categoryId?: string;
