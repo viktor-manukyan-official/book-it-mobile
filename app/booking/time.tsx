@@ -1,338 +1,551 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors, PrimaryGradient } from "../../constants/colors";
+import { useBookingAvailability } from "../../src/hooks/useBookingAvailability";
+import { useServiceDetail } from "../../src/hooks/useServiceDetail";
+import { notifyWhenBookingOpens } from "../../src/services/catalogApi";
+import type { AvailableSlot, GenderPref } from "../../src/types/catalog";
 
-// ⚠️ UI-only screen: static mock data on the frontend (no API).
-
-type DayStatus = "open" | "closed";
-
-interface Day {
-  weekday: string;
-  date: number;
-  status: DayStatus;
-  holiday?: boolean;
-}
-
-const MONTH_LABEL = "August 2026";
-const MONTH_SHORT = "Aug";
-
-const DAYS: Day[] = [
-  { weekday: "SUN", date: 2, status: "closed" },
-  { weekday: "MON", date: 3, status: "open" },
-  { weekday: "TUE", date: 4, status: "open", holiday: true },
-  { weekday: "WED", date: 5, status: "open" },
-  { weekday: "THU", date: 6, status: "closed" },
-  { weekday: "FRI", date: 7, status: "open" },
-  { weekday: "SAT", date: 8, status: "open" },
-  { weekday: "SUN", date: 9, status: "closed" },
-  { weekday: "MON", date: 10, status: "open" },
+const WEEKDAY_ABBR = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_FULL = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
-interface Tech {
-  id: string;
-  name: string;
-  initials: string;
-  bg: string;
-  fg: string;
+const money = (n: number) => `${n.toLocaleString("en-US")} ֏`;
+const firstName = (full: string) => full.split(" ")[0];
+
+function dateParts(date: string) {
+  const d = new Date(`${date}T12:00:00Z`);
+  return { dow: d.getUTCDay(), day: d.getUTCDate(), month: d.getUTCMonth(), year: d.getUTCFullYear() };
 }
 
-const TECHS: Tech[] = [
-  { id: "anushik", name: "Anushik", initials: "AM", bg: "#F7D3C9", fg: "#C2554F" },
-  { id: "davit", name: "Davit", initials: "DH", bg: "#D3DEF7", fg: "#3F5FB4" },
-  { id: "lilit", name: "Lilit", initials: "LS", bg: "#E9D9F7", fg: "#7E4FC2" },
+function fmtTime(iso: string, tz: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(iso));
+}
+
+function hourInTz(iso: string, tz: string): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", hour12: false }).format(
+      new Date(iso),
+    ),
+  );
+}
+
+// Per-technician avatar tints, cycled by index (consistent with the other screens).
+const TECH_TINTS: { bg: string; fg: string }[] = [
+  { bg: "#F7D3C9", fg: "#C2554F" },
+  { bg: "#D3DEF7", fg: "#3F5FB4" },
+  { bg: "#E9D9F7", fg: "#7E4FC2" },
+  { bg: "#D3EAD9", fg: "#3F8A5C" },
+  { bg: "#F3D08A", fg: "#8A6410" },
 ];
 
-type Period = "morning" | "afternoon" | "evening";
-
-interface Slot {
-  time: string;
-  tech: string; // tech name
-  period: Period;
-}
-
-const SLOTS: Slot[] = [
-  { time: "9:30", tech: "Anushik", period: "morning" },
-  { time: "10:15", tech: "Davit", period: "morning" },
-  { time: "10:30", tech: "Anushik", period: "morning" },
-  { time: "11:00", tech: "Lilit", period: "morning" },
-  { time: "11:45", tech: "Anushik", period: "morning" },
-  { time: "13:00", tech: "Davit", period: "afternoon" },
-  { time: "14:30", tech: "Lilit", period: "afternoon" },
-  { time: "15:15", tech: "Anushik", period: "afternoon" },
-  { time: "16:00", tech: "Davit", period: "afternoon" },
-  { time: "18:00", tech: "Lilit", period: "evening" },
-  { time: "18:45", tech: "Anushik", period: "evening" },
+const GENDERS: { key: GenderPref; label: string }[] = [
+  { key: "any", label: "Any" },
+  { key: "female", label: "Female" },
+  { key: "male", label: "Male" },
 ];
-
-const PERIOD_LABEL: Record<Period, string> = {
-  morning: "MORNING",
-  afternoon: "AFTERNOON",
-  evening: "EVENING",
-};
-
-function money(amount: number): string {
-  return `${amount.toLocaleString("en-US")} ֏`;
-}
-
-function addMinutes(time: string, minutes: number): string {
-  const [h, m] = time.split(":").map(Number);
-  const total = h * 60 + m + minutes;
-  const hh = Math.floor(total / 60) % 24;
-  const mm = total % 60;
-  return `${hh}:${String(mm).padStart(2, "0")}`;
-}
 
 export default function ChooseTimeScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ name?: string; duration?: string; price?: string }>();
-  const serviceName = params.name ?? "Face massage";
-  const duration = params.duration ? Number(params.duration) : 45;
-  const price = params.price ? Number(params.price) : 15000;
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{
+    serviceId?: string;
+    name?: string;
+    duration?: string;
+    price?: string;
+    mode?: string;
+  }>();
+  const serviceId = params.serviceId ?? "";
+  const reschedule = params.mode === "reschedule";
 
-  const [selectedDate, setSelectedDate] = useState<number>(4);
-  const [tech, setTech] = useState<string>("any"); // "any" | tech.name
-  const [slotKey, setSlotKey] = useState<string>("10:30|Anushik");
+  const { service, loading: serviceLoading } = useServiceDetail(serviceId);
 
-  const visibleSlots = useMemo(
-    () => (tech === "any" ? SLOTS : SLOTS.filter((s) => s.tech === tech)),
-    [tech],
+  const ready = !!service;
+  const {
+    gender,
+    setGender,
+    technicians,
+    technicianId,
+    selectTechnician,
+    calendar,
+    selectedDate,
+    selectDate,
+    slots,
+    selectedSlot,
+    setSelectedSlot,
+    calendarLoading,
+    slotsLoading,
+    error,
+    retry,
+    refresh,
+    staleMessage,
+    clearStaleMessage,
+    nextAvailableDate,
+  } = useBookingAvailability({
+    serviceId,
+    locationId: service?.locationId ?? "",
+    timezone: service?.timezone ?? "UTC",
+    technicianSelectable: service?.customerCanSelectTechnician ?? false,
+    ready,
+  });
+
+  const tz = service?.timezone ?? "UTC";
+  const name = service?.name ?? params.name ?? "";
+  const duration = service?.duration ?? (params.duration ? Number(params.duration) : 0);
+  const price = service?.price ?? (params.price ? Number(params.price) : 0);
+
+  // Re-fetch availability when the screen regains focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (ready) void refresh();
+    }, [ready, refresh]),
   );
 
-  const grouped = useMemo(() => {
-    const g: Record<Period, Slot[]> = { morning: [], afternoon: [], evening: [] };
-    for (const s of visibleSlots) g[s.period].push(s);
-    return g;
-  }, [visibleSlots]);
+  // Technicians that have at least one slot on the selected date (for chip disabling).
+  const techsWithSlots = useMemo(() => new Set(slots.map((s) => s.technicianId)), [slots]);
 
-  const selectedSlot = useMemo(
-    () => visibleSlots.find((s) => `${s.time}|${s.tech}` === slotKey) ?? null,
-    [visibleSlots, slotKey],
-  );
+  // Group slots by time of day.
+  const groups = useMemo(() => {
+    const g: { key: string; label: string; items: AvailableSlot[] }[] = [
+      { key: "morning", label: "MORNING", items: [] },
+      { key: "afternoon", label: "AFTERNOON", items: [] },
+      { key: "evening", label: "EVENING", items: [] },
+    ];
+    for (const s of slots) {
+      const h = hourInTz(s.startTime, tz);
+      if (h < 12) g[0].items.push(s);
+      else if (h < 17) g[1].items.push(s);
+      else g[2].items.push(s);
+    }
+    return g.filter((x) => x.items.length > 0);
+  }, [slots, tz]);
 
-  const selectedDay = DAYS.find((d) => d.date === selectedDate);
-  const summary = selectedSlot
-    ? `${selectedDay?.weekday ? cap(selectedDay.weekday) : ""} ${selectedDate} ${MONTH_SHORT} · ${selectedSlot.time}–${addMinutes(
-        selectedSlot.time,
-        duration,
-      )} · ${selectedSlot.tech}`
-    : "Pick a time slot";
+  const onReview = () => {
+    if (!selectedSlot || !service) return;
+    router.push({
+      pathname: "/booking/review",
+      params: {
+        serviceId: service.id,
+        name,
+        price: String(price),
+        date: selectedDate ?? "",
+        start: selectedSlot.startTime,
+        end: selectedSlot.endTime,
+        technicianId: selectedSlot.technicianId,
+        technicianName: selectedSlot.technicianName,
+      },
+    });
+  };
+
+  const onNotify = () => {
+    if (service) void notifyWhenBookingOpens(service.venueId);
+  };
+
+  const horizonDays = calendar.length;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
           accessibilityRole="button"
           accessibilityLabel="Go back"
+          hitSlop={8}
         >
           <Ionicons name="chevron-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerText}>
           <Text style={styles.title}>Choose a time</Text>
-          <Text style={styles.subtitle}>
-            {serviceName} · {duration} min
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {name}
+            {duration ? ` · ${duration} min` : ""}
           </Text>
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
-      >
-        {/* Month row */}
-        <View style={styles.monthRow}>
-          <Text style={styles.monthLabel}>{MONTH_LABEL}</Text>
-          <Text style={styles.monthHint}>Booking up to 60 days out</Text>
+      {error && !calendarLoading ? (
+        <View style={styles.centered}>
+          <Text style={styles.dimText}>{error}</Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={retry}>
+            <Text style={styles.primaryButtonText}>Try again</Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Date strip */}
+      ) : (
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.dateStrip}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 24 }}
         >
-          {DAYS.map((d) => {
-            const on = d.date === selectedDate;
-            const closed = d.status === "closed";
-            return (
-              <TouchableOpacity
-                key={d.date}
-                disabled={closed}
-                onPress={() => setSelectedDate(d.date)}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on, disabled: closed }}
-                accessibilityLabel={`${d.weekday} ${d.date}${closed ? ", closed" : ""}`}
-                style={[
-                  styles.dateCell,
-                  closed && styles.dateCellClosed,
-                  on && styles.dateCellActive,
-                ]}
-              >
-                <Text style={[styles.dateWeekday, on && styles.dateTextActive, closed && styles.dateTextClosed]}>
-                  {d.weekday}
-                </Text>
-                <Text style={[styles.dateNum, on && styles.dateTextActive, closed && styles.dateTextClosed]}>
-                  {d.date}
-                </Text>
-                {on ? (
-                  <View style={styles.dotWhite} />
-                ) : d.status === "open" ? (
-                  <View style={styles.dotOpen} />
-                ) : (
-                  <View style={styles.dotHidden} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <View style={styles.dotOpen} />
-            <Text style={styles.legendText}>slots open</Text>
+          {/* Date strip */}
+          <View style={styles.dateHeader}>
+            <Text style={styles.monthLabel}>
+              {selectedDate
+                ? `${MONTHS_FULL[dateParts(selectedDate).month]} ${dateParts(selectedDate).year}`
+                : ""}
+            </Text>
+            {horizonDays > 0 ? (
+              <Text style={styles.horizonNote}>Booking up to {horizonDays} days out</Text>
+            ) : null}
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.dotOpen, { backgroundColor: Colors.textLight }]} />
+
+          {serviceLoading || calendarLoading ? (
+            <View style={styles.dateStrip}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <View key={i} style={[styles.dateCell, styles.skel]} />
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.dateStrip}
+            >
+              {calendar.map((d) => {
+                const { dow, day } = dateParts(d.date);
+                const selected = d.date === selectedDate;
+                const disabled = d.status !== "open";
+                const cell = (
+                  <View
+                    style={[
+                      styles.dateCell,
+                      selected && styles.dateCellSelected,
+                      disabled && styles.dateCellDisabled,
+                    ]}
+                  >
+                    <Text style={[styles.dateDow, selected && styles.dateTextSelected]}>
+                      {WEEKDAY_ABBR[dow]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.dateNum,
+                        selected && styles.dateTextSelected,
+                        disabled && styles.dateNumStruck,
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                    {d.hasAvailability === true && !selected ? (
+                      <View style={styles.availDot} />
+                    ) : (
+                      <View style={styles.availDotPlaceholder} />
+                    )}
+                  </View>
+                );
+                return disabled ? (
+                  <View key={d.date}>{cell}</View>
+                ) : (
+                  <TouchableOpacity
+                    key={d.date}
+                    onPress={() => selectDate(d.date)}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    {selected ? (
+                      <LinearGradient
+                        colors={PrimaryGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.dateCell}
+                      >
+                        <Text style={[styles.dateDow, styles.dateTextSelected]}>
+                          {WEEKDAY_ABBR[dow]}
+                        </Text>
+                        <Text style={[styles.dateNum, styles.dateTextSelected]}>{day}</Text>
+                        <View style={styles.availDotPlaceholder} />
+                      </LinearGradient>
+                    ) : (
+                      cell
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          <View style={styles.legend}>
+            <View style={styles.availDot} />
+            <Text style={styles.legendText}>slots open</Text>
+            <View style={styles.legendDotMuted} />
             <Text style={styles.legendText}>closed · holiday</Text>
           </View>
-        </View>
 
-        {/* Technician */}
-        <Text style={styles.blockTitle}>Technician</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.techStrip}
-        >
-          <TouchableOpacity
-            onPress={() => setTech("any")}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityState={{ selected: tech === "any" }}
-            style={[styles.techChip, tech === "any" ? styles.techChipActive : styles.techChipInactive]}
-          >
-            <View style={styles.anyIcon}>
-              <Ionicons name="sparkles" size={13} color={Colors.white} />
-            </View>
-            <Text style={[styles.techName, tech === "any" && styles.techNameActive]}>Any</Text>
-          </TouchableOpacity>
-          {TECHS.map((t) => {
-            const on = tech === t.name;
-            return (
-              <TouchableOpacity
-                key={t.id}
-                onPress={() => setTech(t.name)}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                style={[styles.techChip, on ? styles.techChipActive : styles.techChipInactive]}
-              >
-                <View style={[styles.techAvatar, { backgroundColor: t.bg }]}>
-                  <Text style={[styles.techAvatarText, { color: t.fg }]}>{t.initials}</Text>
-                </View>
-                <Text style={[styles.techName, on && styles.techNameActive]}>{t.name}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Slots by period */}
-        {(["morning", "afternoon", "evening"] as Period[]).map((p) =>
-          grouped[p].length > 0 ? (
-            <View key={p} style={styles.periodBlock}>
-              <View style={styles.periodHead}>
-                <Text style={styles.periodLabel}>{PERIOD_LABEL[p]}</Text>
-                <View style={styles.periodLine} />
-              </View>
-              <View style={styles.slotGrid}>
-                {grouped[p].map((s) => {
-                  const key = `${s.time}|${s.tech}`;
-                  const on = key === slotKey;
+          {/* Gender + Technician (only when selectable) */}
+          {service?.customerCanSelectTechnician ? (
+            <>
+              <Text style={styles.sectionLabel}>Provider preference</Text>
+              <View style={styles.segmented}>
+                {GENDERS.map((g) => {
+                  const on = gender === g.key;
                   return (
                     <TouchableOpacity
-                      key={key}
-                      onPress={() => setSlotKey(key)}
-                      activeOpacity={0.85}
+                      key={g.key}
+                      style={[styles.segment, on && styles.segmentOn]}
+                      onPress={() => setGender(g.key)}
+                      activeOpacity={0.8}
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
-                      accessibilityLabel={`${s.time} with ${s.tech}`}
-                      style={[styles.slot, on ? styles.slotActive : styles.slotInactive]}
                     >
-                      <Text style={[styles.slotTime, on && styles.slotTimeActive]}>{s.time}</Text>
-                      <Text style={[styles.slotTech, on && styles.slotTechActive]}>{s.tech}</Text>
+                      <Text style={on ? styles.segmentTextOn : styles.segmentText}>{g.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
-            </View>
-          ) : null,
-        )}
-      </ScrollView>
 
-      {/* Sticky CTA */}
-      <View style={styles.ctaBar}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryText} numberOfLines={1}>
-            {summary}
-          </Text>
-          <Text style={styles.summaryPrice}>{money(price)}</Text>
-        </View>
+              <View style={styles.techHeader}>
+                <Text style={styles.sectionLabel}>Technician</Text>
+                <Text style={styles.techCount}>{technicians.length} available</Text>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.techRow}
+              >
+                <TechChip
+                  label="Any"
+                  any
+                  selected={technicianId === null}
+                  disabled={false}
+                  onPress={() => selectTechnician(null)}
+                />
+                {technicians.map((t, i) => {
+                  const disabled = technicianId === null && !techsWithSlots.has(t.id);
+                  return (
+                    <TechChip
+                      key={t.id}
+                      label={t.firstName}
+                      initials={t.initials}
+                      tint={TECH_TINTS[i % TECH_TINTS.length]}
+                      selected={technicianId === t.id}
+                      disabled={disabled}
+                      onPress={() => selectTechnician(t.id)}
+                    />
+                  );
+                })}
+              </ScrollView>
+            </>
+          ) : null}
+
+          {/* Stale banner */}
+          {staleMessage ? (
+            <TouchableOpacity style={styles.staleBanner} onPress={clearStaleMessage}>
+              <Text style={styles.staleText}>{staleMessage}</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {/* Slots */}
+          {slotsLoading ? (
+            <View style={styles.slotArea}>
+              <View style={[styles.skelLine, { width: "30%", marginBottom: 12 }]} />
+              <View style={styles.slotWrap}>
+                {[0, 1, 2, 3].map((i) => (
+                  <View key={i} style={[styles.slotPill, styles.skel]} />
+                ))}
+              </View>
+            </View>
+          ) : groups.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIllustration}>🗓️</Text>
+              <Text style={styles.emptyHeading}>
+                No availability on {selectedDate ? `${WEEKDAY_ABBR[dateParts(selectedDate).dow]} ${dateParts(selectedDate).day}` : "this day"}
+              </Text>
+              <Text style={styles.dimText}>
+                Every slot is taken or the service doesn&apos;t fit the remaining time. Try another
+                day.
+              </Text>
+              {nextAvailableDate ? (
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={() => selectDate(nextAvailableDate)}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    Jump to {WEEKDAY_ABBR[dateParts(nextAvailableDate).dow]}{" "}
+                    {dateParts(nextAvailableDate).day}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity style={styles.secondaryButton} onPress={onNotify}>
+                <Text style={styles.secondaryButtonText}>Notify me</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.slotArea}>
+              {groups.map((g) => (
+                <View key={g.key} style={styles.group}>
+                  <View style={styles.groupHeader}>
+                    <Text style={styles.groupLabel}>{g.label}</Text>
+                    <View style={styles.groupDivider} />
+                  </View>
+                  <View style={styles.slotWrap}>
+                    {g.items.map((s) => {
+                      const on =
+                        selectedSlot?.startTime === s.startTime &&
+                        selectedSlot?.technicianId === s.technicianId;
+                      const showTech = technicianId === null;
+                      const pillInner = (
+                        <>
+                          <Text style={[styles.slotTime, on && styles.slotTextOn]}>
+                            {fmtTime(s.startTime, tz)}
+                          </Text>
+                          {showTech ? (
+                            <Text style={[styles.slotTech, on && styles.slotTextOn]}>
+                              {firstName(s.technicianName)}
+                            </Text>
+                          ) : null}
+                        </>
+                      );
+                      return (
+                        <TouchableOpacity
+                          key={`${s.startTime}-${s.technicianId}`}
+                          onPress={() => setSelectedSlot(s)}
+                          activeOpacity={0.85}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: on }}
+                        >
+                          {on ? (
+                            <LinearGradient
+                              colors={PrimaryGradient}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={styles.slotPill}
+                            >
+                              {pillInner}
+                            </LinearGradient>
+                          ) : (
+                            <View style={[styles.slotPill, styles.slotPillIdle]}>{pillInner}</View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Summary + action bar */}
+      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
+        {selectedSlot && selectedDate ? (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryText} numberOfLines={1}>
+              {WEEKDAY_ABBR[dateParts(selectedDate).dow]} {dateParts(selectedDate).day}{" "}
+              {MONTHS[dateParts(selectedDate).month]} · {fmtTime(selectedSlot.startTime, tz)}–
+              {fmtTime(selectedSlot.endTime, tz)} · {firstName(selectedSlot.technicianName)}
+            </Text>
+            <Text style={styles.summaryPrice}>{money(price)}</Text>
+          </View>
+        ) : null}
         <TouchableOpacity
           activeOpacity={0.9}
+          onPress={onReview}
           disabled={!selectedSlot}
-          onPress={() => {
-            if (!selectedSlot || !selectedDay) return;
-            router.push({
-              pathname: "/booking/review",
-              params: {
-                name: serviceName,
-                duration: String(duration),
-                price: String(price),
-                start: selectedSlot.time,
-                tech: selectedSlot.tech,
-                dateLabel: `${cap(selectedDay.weekday)}, ${selectedDate} ${MONTH_SHORT} 2026`,
-                dateShort: `${selectedDate} ${MONTH_SHORT}`,
-              },
-            });
-          }}
           accessibilityRole="button"
-          accessibilityLabel="Review booking"
+          accessibilityLabel={reschedule ? "Confirm new time" : "Review booking"}
         >
           <LinearGradient
-            colors={PrimaryGradient}
+            colors={selectedSlot ? PrimaryGradient : [Colors.border, Colors.border]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={[styles.ctaButton, !selectedSlot && styles.ctaDisabled]}
+            style={styles.cta}
           >
-            <Text style={styles.ctaText}>Review booking</Text>
+            {slotsLoading && !selectedSlot ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text style={[styles.ctaText, !selectedSlot && styles.ctaTextDisabled]}>
+                {reschedule ? "Confirm new time" : "Review booking"}
+              </Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
-function cap(weekday: string): string {
-  return weekday.charAt(0) + weekday.slice(1).toLowerCase();
+function TechChip({
+  label,
+  initials,
+  tint,
+  any,
+  selected,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  initials?: string;
+  tint?: { bg: string; fg: string };
+  any?: boolean;
+  selected: boolean;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityState={{ selected, disabled }}
+      style={[
+        styles.techChip,
+        selected ? styles.techChipSelected : styles.chipInactive,
+        disabled && styles.chipDisabled,
+      ]}
+    >
+      <View
+        style={[
+          styles.techAvatar,
+          any
+            ? styles.techAvatarAny
+            : { backgroundColor: tint?.bg ?? Colors.background },
+        ]}
+      >
+        {any ? (
+          <Ionicons name="sparkles" size={14} color={selected ? Colors.white : Colors.primary} />
+        ) : (
+          <Text style={[styles.techAvatarText, { color: tint?.fg ?? Colors.textSecondary }]}>
+            {initials}
+          </Text>
+        )}
+      </View>
+      <Text
+        style={[
+          selected ? styles.chipTextActive : styles.chipTextInactive,
+          disabled && styles.chipTextDisabled,
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingTop: 6 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 12 },
   backButton: {
     width: 44,
     height: 44,
@@ -340,116 +553,166 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#1A1A2E",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  title: { fontSize: 22, fontWeight: "700", letterSpacing: -0.3, color: Colors.textPrimary },
-  subtitle: { fontSize: 13, color: Colors.textLight, marginTop: 2 },
+  headerText: { flex: 1, minWidth: 0 },
+  title: { fontSize: 22, fontWeight: "700", letterSpacing: -0.4, color: Colors.textPrimary },
+  subtitle: { fontSize: 14, color: Colors.textSecondary },
 
-  scroll: { paddingBottom: 150 },
-
-  monthRow: {
+  dateHeader: {
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 8,
   },
   monthLabel: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary },
-  monthHint: { fontSize: 13, color: Colors.textLight },
-
-  dateStrip: { paddingHorizontal: 20, paddingTop: 14, gap: 10 },
+  horizonNote: { fontSize: 13, color: Colors.textLight },
+  dateStrip: { paddingHorizontal: 20, paddingVertical: 14, gap: 10 },
   dateCell: {
-    width: 62,
-    height: 84,
+    width: 60,
+    height: 78,
     borderRadius: 18,
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: 4,
   },
-  dateCellClosed: { backgroundColor: "#EFEFF2", borderColor: "#EFEFF2" },
-  dateCellActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  dateWeekday: { fontSize: 11, fontWeight: "600", color: Colors.textLight, letterSpacing: 0.5 },
-  dateNum: { fontSize: 20, fontWeight: "700", color: Colors.textPrimary },
-  dateTextActive: { color: Colors.white },
-  dateTextClosed: { color: Colors.textLight },
-  dotOpen: { width: 6, height: 6, borderRadius: 999, backgroundColor: Colors.success },
-  dotWhite: { width: 6, height: 6, borderRadius: 999, backgroundColor: Colors.white },
-  dotHidden: { width: 6, height: 6, borderRadius: 999, backgroundColor: "transparent" },
+  dateCellSelected: { borderWidth: 0 },
+  dateCellDisabled: { backgroundColor: Colors.background, borderColor: "transparent" },
+  dateDow: { fontSize: 11, fontWeight: "600", color: Colors.textLight },
+  dateNum: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary },
+  dateNumStruck: { textDecorationLine: "line-through", color: Colors.textLight },
+  dateTextSelected: { color: Colors.white },
+  availDot: { width: 5, height: 5, borderRadius: 999, backgroundColor: Colors.success },
+  availDotPlaceholder: { width: 5, height: 5 },
 
-  legend: { flexDirection: "row", gap: 16, paddingHorizontal: 20, paddingTop: 12 },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  legendText: { fontSize: 12, color: Colors.textLight },
+  legend: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, marginTop: -2 },
+  legendText: { fontSize: 12, color: Colors.textLight, marginRight: 6 },
+  legendDotMuted: { width: 5, height: 5, borderRadius: 999, backgroundColor: Colors.textLight },
 
-  blockTitle: { fontSize: 17, fontWeight: "700", color: Colors.textPrimary, paddingHorizontal: 20, paddingTop: 22 },
-  techStrip: { paddingHorizontal: 20, paddingTop: 14, gap: 10 },
-  techChip: {
-    height: 52,
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  segmented: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    backgroundColor: "#EBEAEE",
     borderRadius: 999,
+    padding: 4,
+  },
+  segment: { flex: 1, minHeight: 44, borderRadius: 999, justifyContent: "center", alignItems: "center" },
+  segmentOn: {
+    backgroundColor: Colors.card,
+    shadowColor: "#1A1A2E",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  segmentText: { fontSize: 15, fontWeight: "600", color: Colors.textSecondary },
+  segmentTextOn: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
+  techHeader: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" },
+  techCount: { fontSize: 13, color: Colors.textLight, paddingRight: 20 },
+  techRow: { paddingHorizontal: 20, gap: 8 },
+  techChip: {
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingLeft: 8,
-    paddingRight: 18,
-  },
-  techChipActive: { backgroundColor: Colors.textPrimary },
-  techChipInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  anyIcon: {
-    width: 36,
-    height: 36,
+    gap: 8,
     borderRadius: 999,
-    backgroundColor: "#3A3A4E",
+    paddingHorizontal: 8,
+    paddingRight: 16,
+  },
+  techChipSelected: { backgroundColor: Colors.textPrimary },
+  techAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
-  techAvatar: { width: 36, height: 36, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-  techAvatarText: { fontSize: 12, fontWeight: "700" },
-  techName: { fontSize: 15, fontWeight: "600", color: Colors.textPrimary },
-  techNameActive: { color: Colors.white },
+  techAvatarAny: { backgroundColor: "rgba(255,255,255,.15)" },
+  techAvatarText: { fontSize: 12, fontWeight: "700", color: Colors.textSecondary },
 
-  periodBlock: { paddingHorizontal: 20, paddingTop: 22 },
-  periodHead: { flexDirection: "row", alignItems: "center", gap: 12 },
-  periodLabel: { fontSize: 12, fontWeight: "700", letterSpacing: 1, color: Colors.textLight },
-  periodLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  slotGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingTop: 14 },
-  slot: {
-    width: 74,
-    height: 62,
+  chipActive: { backgroundColor: Colors.textPrimary },
+  chipInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
+  chipDisabled: { opacity: 0.45 },
+  chipTextActive: { fontSize: 14, fontWeight: "600", color: Colors.white },
+  chipTextInactive: { fontSize: 14, fontWeight: "600", color: Colors.textPrimary },
+  chipTextDisabled: { color: Colors.textLight },
+
+  staleBanner: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: "#FEF3C7",
+    borderRadius: 12,
+    padding: 12,
+  },
+  staleText: { fontSize: 13, color: "#92400E", fontWeight: "500" },
+
+  slotArea: { paddingHorizontal: 20, paddingTop: 18 },
+  group: { marginBottom: 20 },
+  groupHeader: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 },
+  groupLabel: { fontSize: 13, fontWeight: "700", letterSpacing: 0.6, color: Colors.textLight },
+  groupDivider: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: Colors.border },
+  slotWrap: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  slotPill: {
+    minWidth: 92,
+    minHeight: 56,
     borderRadius: 18,
+    paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
     gap: 2,
   },
-  slotInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  slotActive: { backgroundColor: Colors.primary },
-  slotTime: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
-  slotTimeActive: { color: Colors.white },
-  slotTech: { fontSize: 11, color: Colors.textLight },
-  slotTechActive: { color: "rgba(255,255,255,.85)" },
+  slotPillIdle: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
+  slotTime: { fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
+  slotTech: { fontSize: 12, color: Colors.textLight },
+  slotTextOn: { color: Colors.white },
 
-  ctaBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+  emptyState: { padding: 32, alignItems: "center", gap: 12 },
+  emptyIllustration: { fontSize: 44 },
+  emptyHeading: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary, textAlign: "center" },
+
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 14 },
+  dimText: { fontSize: 15, color: Colors.textSecondary, textAlign: "center", lineHeight: 22 },
+  primaryButton: {
+    minHeight: 44,
+    borderRadius: 999,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  primaryButtonText: { fontSize: 15, fontWeight: "600", color: Colors.white },
+  secondaryButton: { minHeight: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: 24 },
+  secondaryButtonText: { fontSize: 15, fontWeight: "600", color: Colors.primary },
+
+  actionBar: {
     backgroundColor: Colors.card,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
     paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 24,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F1F4",
-    gap: 12,
+    paddingTop: 12,
+    gap: 10,
   },
   summaryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  summaryText: { flex: 1, fontSize: 14, color: Colors.textSecondary },
-  summaryPrice: { fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
-  ctaButton: { height: 56, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-  ctaDisabled: { opacity: 0.5 },
-  ctaText: { fontSize: 17, fontWeight: "700", color: Colors.white },
+  summaryText: { flex: 1, fontSize: 13, color: Colors.textSecondary },
+  summaryPrice: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
+  cta: { height: 54, borderRadius: 999, justifyContent: "center", alignItems: "center" },
+  ctaText: { fontSize: 16, fontWeight: "700", color: Colors.white },
+  ctaTextDisabled: { color: Colors.textLight },
+
+  skel: { backgroundColor: "#ECECEF" },
+  skelLine: { height: 12, borderRadius: 6, backgroundColor: "#ECECEF" },
 });

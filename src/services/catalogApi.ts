@@ -216,6 +216,8 @@ const SERVICE_DETAIL_QUERY = /* GraphQL */ `
       categoryName
       venueId
       venueName
+      locationId
+      timezone
       customerCanSelectTechnician
       freeCancelMinutes
       cancellationFee

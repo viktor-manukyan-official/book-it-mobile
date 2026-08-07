@@ -80,12 +80,38 @@ export interface ServiceDetail {
   categoryName?: string | null;
   venueId: string;
   venueName: string;
+  locationId: string;
+  timezone: string;
   customerCanSelectTechnician: boolean;
   freeCancelMinutes: number;
   cancellationFee: number;
   cancellationFeeType: string; // 'fixed' | 'percentage'
   rating?: number | null;
   reviewCount?: number | null;
+}
+
+// Booking availability (BOOK-72).
+export type GenderPref = "any" | "male" | "female";
+
+export interface BookingTechnician {
+  id: string;
+  firstName: string;
+  initials: string;
+  profileImageUrl?: string | null;
+  gender?: string | null;
+}
+
+export interface AvailableSlot {
+  startTime: string; // ISO (UTC)
+  endTime: string;
+  technicianId: string;
+  technicianName: string;
+}
+
+export interface DayAvailability {
+  date: string; // YYYY-MM-DD
+  status: "open" | "closed" | "holiday";
+  hasAvailability?: boolean | null;
 }
 
 export interface ExploreFilter {
