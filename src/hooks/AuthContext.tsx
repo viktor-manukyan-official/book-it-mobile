@@ -25,6 +25,8 @@ export interface AuthContextValue {
   signIn: (session: Session, user: UserProfile) => Promise<void>;
   /** Clear the stored session and return the user to the auth flow. */
   signOut: () => Promise<void>;
+  /** Persist an updated user profile (after editing Personal info). */
+  updateUser: (user: UserProfile) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -71,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback(async (nextUser: UserProfile) => {
+    await saveUser(nextUser);
+    setUser(nextUser);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
@@ -79,8 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: session !== null,
       signIn,
       signOut,
+      updateUser,
     }),
-    [session, user, isLoading, signIn, signOut],
+    [session, user, isLoading, signIn, signOut, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,186 +1,189 @@
-import { useState } from "react";
-import { Alert, View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "../../constants/colors";
-import { useAuth } from "../../src/hooks/useAuth";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const PROFILE_MENU_ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
-  { icon: "time-outline", label: "My History" },
-  { icon: "language-outline", label: "Language Selection" },
-  { icon: "help-circle-outline", label: "Help & Support" },
-];
+import { Colors, PrimaryGradient } from "../../constants/colors";
+import { useAuth } from "../../src/hooks/useAuth";
+import { getLanguage, LANGUAGES, type LanguageCode } from "../../src/services/language";
+import { fetchNotificationPreferences } from "../../src/services/profileApi";
+
+function initials(name: string): string {
+  return name.split(" ").map((w) => w[0]).filter(Boolean).join("").slice(0, 2).toUpperCase();
+}
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { user, signOut } = useAuth();
-  const [signingOut, setSigningOut] = useState(false);
+  const [lang, setLang] = useState<LanguageCode>("en");
+  const [channels, setChannels] = useState<string>("");
 
-  const fullName = user
-    ? `${user.firstName} ${user.lastName}`.trim()
-    : "";
-  const initial = (user?.firstName?.[0] ?? "").toUpperCase();
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void getLanguage().then((l) => active && setLang(l));
+      void fetchNotificationPreferences()
+        .then((p) => {
+          if (!active) return;
+          const on = [p.push && "Push", p.sms && "SMS"].filter(Boolean);
+          setChannels(on.length ? on.join(" + ") : "Off");
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
-  const confirmLogout = () => {
-    Alert.alert("Log out", "Are you sure you want to log out of BookIt?", [
+  const fullName = user ? `${user.firstName} ${user.lastName}`.trim() : "";
+  const langLabel = LANGUAGES.find((l) => l.code === lang)?.label ?? "English";
+
+  const onLogout = () =>
+    Alert.alert("Log out", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Log out",
-        style: "destructive",
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            // Clears the stored session; the root route guard then redirects
-            // back to the phone-login screen.
-            await signOut();
-          } catch {
-            setSigningOut(false);
-            Alert.alert("Log out failed", "Please try again.");
-          }
-        },
-      },
+      { text: "Log out", style: "destructive", onPress: () => void signOut() },
     ]);
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          {initial ? (
-            <Text style={styles.avatarInitial}>{initial}</Text>
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        {/* Identity */}
+        <View style={styles.identity}>
+          {user?.profileImageUrl ? (
+            <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
           ) : (
-            <Ionicons name="person" size={48} color={Colors.white} />
+            <LinearGradient colors={PrimaryGradient} style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials(fullName || "?")}</Text>
+            </LinearGradient>
           )}
-        </View>
-        <Text style={styles.name}>{fullName || "BookIt user"}</Text>
-        {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
-      </View>
-
-      <View style={styles.menuSection}>
-        <View style={styles.menuCard}>
-          {PROFILE_MENU_ITEMS.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              style={[
-                styles.menuRow,
-                index < PROFILE_MENU_ITEMS.length - 1 && styles.menuRowBorder,
-              ]}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={item.label}
-            >
-              <View style={styles.menuRowLeft}>
-                <Ionicons
-                  name={item.icon as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={Colors.textPrimary}
-                />
-                <Text style={styles.menuLabel}>{item.label}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.textSecondary}
-              />
-            </TouchableOpacity>
-          ))}
+          <Text style={styles.name}>{fullName}</Text>
+          {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
         </View>
 
-        <TouchableOpacity
-          style={styles.logoutButton}
-          activeOpacity={0.7}
-          onPress={confirmLogout}
-          disabled={signingOut}
-          accessibilityRole="button"
-          accessibilityLabel="Log out"
-          accessibilityState={{ disabled: signingOut, busy: signingOut }}
-        >
-          <Ionicons name="log-out-outline" size={22} color={Colors.error} />
-          <Text style={styles.logoutLabel}>
-            {signingOut ? "Logging out…" : "Log out"}
-          </Text>
+        {/* Menu */}
+        <View style={styles.card}>
+          <Row
+            icon="person-circle-outline"
+            label="Personal info"
+            onPress={() => router.push("/profile/personal")}
+          />
+          <Divider />
+          <Row
+            icon="language-outline"
+            label="Language"
+            value={langLabel}
+            onPress={() => router.push("/profile/language")}
+          />
+          <Divider />
+          <Row
+            icon="notifications-outline"
+            label="Notifications"
+            value={channels}
+            onPress={() => router.push("/profile/notifications-settings")}
+          />
+          <Divider />
+          <Row
+            icon="help-circle-outline"
+            label="Help & support"
+            onPress={() => router.push("/profile/help")}
+          />
+        </View>
+
+        {/* Log out */}
+        <TouchableOpacity style={styles.logoutCard} onPress={onLogout} accessibilityRole="button" accessibilityLabel="Log out">
+          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
+          <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
-      </View>
+
+        <Text style={styles.footer}>BookIt v1.0 · Yerevan, Armenia</Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
+function Row({
+  icon,
+  label,
+  value,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value?: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={styles.rowIcon}>
+        <Ionicons name={icon} size={18} color={Colors.textSecondary} />
+      </View>
+      <Text style={styles.rowLabel}>{label}</Text>
+      {value ? (
+        <Text style={styles.rowValue} numberOfLines={1}>
+          {value}
+        </Text>
+      ) : null}
+      <Ionicons name="chevron-forward" size={18} color="#C8C8CF" />
+    </TouchableOpacity>
+  );
+}
+
+const Divider = () => <View style={styles.divider} />;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  avatarSection: {
-    alignItems: "center",
-    paddingTop: 40,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarInitial: {
-    fontSize: 42,
-    fontWeight: "700",
-    color: Colors.white,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-    marginTop: 16,
-  },
-  email: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  menuSection: {
-    marginTop: 32,
-    paddingHorizontal: 20,
-  },
-  menuCard: {
-    borderRadius: 16,
+  container: { flex: 1, backgroundColor: Colors.background },
+  body: { padding: 20, paddingTop: 24, gap: 20 },
+  identity: { alignItems: "center", gap: 6 },
+  avatar: { width: 116, height: 116, borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 40, fontWeight: "800", color: Colors.white },
+  name: { fontSize: 24, fontWeight: "800", letterSpacing: -0.5, color: Colors.textPrimary, marginTop: 6 },
+  email: { fontSize: 15, color: Colors.textSecondary },
+
+  card: {
     backgroundColor: Colors.card,
-    overflow: "hidden",
-  },
-  menuRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 16,
+    borderRadius: 20,
     paddingHorizontal: 16,
-    minHeight: 44,
+    shadowColor: "#1A1A2E",
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  menuRowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  menuRowLeft: {
-    flexDirection: "row",
+  row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: 13 },
+  rowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    backgroundColor: Colors.background,
     alignItems: "center",
+    justifyContent: "center",
   },
-  menuLabel: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    marginLeft: 16,
-  },
-  logoutButton: {
+  rowLabel: { flex: 1, fontSize: 16, fontWeight: "600", color: Colors.textPrimary },
+  rowValue: { fontSize: 14, color: Colors.textLight, maxWidth: 140 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginLeft: 49 },
+
+  logoutCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 20,
+    minHeight: 60,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    marginTop: 20,
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: Colors.card,
-    minHeight: 44,
+    gap: 8,
+    shadowColor: "#1A1A2E",
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  logoutLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.error,
-  },
+  logoutText: { fontSize: 16, fontWeight: "700", color: Colors.error },
+  footer: { fontSize: 13, color: Colors.textLight, textAlign: "center" },
 });

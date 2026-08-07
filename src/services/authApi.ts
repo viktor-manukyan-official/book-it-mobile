@@ -16,6 +16,7 @@ const AUTHENTICATE_MUTATION = /* GraphQL */ `
       user {
         id
         email
+        phone
         firstName
         lastName
         profileImageUrl

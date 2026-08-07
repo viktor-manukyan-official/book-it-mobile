@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "../../constants/colors";
+import { Colors, PrimaryGradient } from "../../constants/colors";
 import { useAuth } from "../../src/hooks/useAuth";
 import { useHomeVenue } from "../../src/hooks/useHomeVenue";
 import { fetchUnreadCount } from "../../src/services/notificationsApi";
@@ -251,17 +254,49 @@ export default function HomeScreen() {
     loading,
     refreshing,
     error,
-    categories,
-    selectedCategoryId,
-    selectCategory,
+    primaries,
+    primaryIdOf,
+    selectedPrimaryId,
+    selectPrimary,
+    subcategories,
+    subcategoriesOf,
+    subCount,
+    selectedSubId,
+    selectSub,
     filteredServices,
     groupLabel,
     hasServices,
+    totalServiceCount,
+    filterSubIds,
+    filterActive,
+    applyFilter,
+    clearFilter,
     notify,
     registerNotify,
     refresh,
     retry,
   } = useHomeVenue();
+  const [primaryPickerOpen, setPrimaryPickerOpen] = useState(false);
+
+  // Home shows at most 2 primary chips + the Filter chip. When a filter is
+  // active, those two are the primaries of the selected subcategories (in
+  // selection order); otherwise the selected primary first, then the rest.
+  const shownPrimaries = (() => {
+    if (filterActive) {
+      const ids: string[] = [];
+      for (const subId of filterSubIds) {
+        const pid = primaryIdOf(subId);
+        if (pid && !ids.includes(pid)) ids.push(pid);
+      }
+      const list = ids
+        .map((id) => primaries.find((p) => p.id === id))
+        .filter((p): p is (typeof primaries)[number] => !!p);
+      if (list.length > 0) return list.slice(0, 2);
+    }
+    const sel = primaries.find((p) => p.id === selectedPrimaryId);
+    const rest = primaries.filter((p) => p.id !== selectedPrimaryId);
+    return (sel ? [sel, ...rest] : rest).slice(0, 2);
+  })();
 
   const firstName = user?.firstName ?? "there";
   const avatarInitials = user
@@ -357,31 +392,79 @@ export default function HomeScreen() {
 
             {hasServices ? (
               <>
+                {/* Primary categories + "All N" picker */}
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.chipsRow}
                   style={styles.chipsScroll}
                 >
-                  {[{ id: null, name: "All" }, ...categories].map((c) => {
-                    const on = selectedCategoryId === c.id;
+                  {shownPrimaries.map((p) => {
+                    const on = !filterActive && selectedPrimaryId === p.id;
                     return (
                       <TouchableOpacity
-                        key={c.id ?? "all"}
+                        key={p.id}
                         style={[styles.chip, on ? styles.chipActive : styles.chipInactive]}
-                        onPress={() => selectCategory(c.id)}
+                        onPress={() => selectPrimary(p.id)}
                         activeOpacity={0.8}
                         accessibilityRole="button"
                         accessibilityState={{ selected: on }}
-                        accessibilityLabel={c.name}
+                        accessibilityLabel={p.name}
                       >
-                        <Text style={on ? styles.chipTextActive : styles.chipTextInactive}>
-                          {c.name}
+                        <Text style={on ? styles.chipTextActive : styles.chipTextInactive} numberOfLines={1}>
+                          {p.name}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
+                  <TouchableOpacity
+                    style={[styles.filterChip, filterActive ? styles.chipActive : styles.chipInactive]}
+                    onPress={() => setPrimaryPickerOpen(true)}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      filterActive ? `Filters, ${filterSubIds.length} selected` : "Filters"
+                    }
+                  >
+                    <Ionicons
+                      name="options-outline"
+                      size={22}
+                      color={filterActive ? Colors.white : Colors.textSecondary}
+                    />
+                    {filterActive ? (
+                      <Text style={styles.filterChipCount}>{filterSubIds.length}</Text>
+                    ) : null}
+                  </TouchableOpacity>
                 </ScrollView>
+
+                {/* Subcategories of the selected primary (All + children) */}
+                {subcategories.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.chipsRow}
+                    style={styles.subChipsScroll}
+                  >
+                    {[{ id: null, name: "All" }, ...subcategories].map((c) => {
+                      const on = selectedSubId === c.id;
+                      return (
+                        <TouchableOpacity
+                          key={c.id ?? "all"}
+                          style={[styles.subChip, on ? styles.subChipActive : styles.subChipInactive]}
+                          onPress={() => selectSub(c.id)}
+                          activeOpacity={0.8}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: on }}
+                          accessibilityLabel={c.name}
+                        >
+                          <Text style={on ? styles.subChipTextActive : styles.subChipTextInactive}>
+                            {c.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                ) : null}
 
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>{groupLabel}</Text>
@@ -432,7 +515,170 @@ export default function HomeScreen() {
           </>
         ) : null}
       </ScrollView>
+
+      {/* Multi-select category filter */}
+      <FilterSheet
+        visible={primaryPickerOpen}
+        primaries={primaries}
+        subcategoriesOf={subcategoriesOf}
+        subCount={subCount}
+        totalServiceCount={totalServiceCount}
+        initialSelected={filterSubIds}
+        onClose={() => setPrimaryPickerOpen(false)}
+        onApply={(ids) => {
+          if (ids.length > 0) applyFilter(ids);
+          else clearFilter();
+          setPrimaryPickerOpen(false);
+        }}
+      />
     </SafeAreaView>
+  );
+}
+
+/** Multi-select category filter sheet: accordion per primary, checkboxes with
+ *  counts, removable selected pills, Reset, and a live "Show N services" CTA. */
+function FilterSheet({
+  visible,
+  primaries,
+  subcategoriesOf,
+  subCount,
+  totalServiceCount,
+  initialSelected,
+  onClose,
+  onApply,
+}: {
+  visible: boolean;
+  primaries: { id: string; name: string }[];
+  subcategoriesOf: (id: string | null) => { id: string; name: string }[];
+  subCount: (id: string) => number;
+  totalServiceCount: number;
+  initialSelected: string[];
+  onClose: () => void;
+  onApply: (ids: string[]) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(initialSelected);
+  const [expanded, setExpanded] = useState<string[]>(() =>
+    primaries.slice(0, 2).map((p) => p.id),
+  );
+  // Re-seed the draft when the sheet is (re)opened with a new applied filter.
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => setSelected(initialSelected), 0);
+    return () => clearTimeout(t);
+  }, [visible, initialSelected]);
+
+  const subById = useMemo(() => {
+    const m = new Map<string, { id: string; name: string }>();
+    for (const p of primaries) for (const s of subcategoriesOf(p.id)) m.set(s.id, s);
+    return m;
+  }, [primaries, subcategoriesOf]);
+
+  const toggleSub = (id: string) =>
+    setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const toggleExpand = (id: string) =>
+    setExpanded((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+
+  const showCount = selected.length
+    ? selected.reduce((n, id) => n + subCount(id), 0)
+    : totalServiceCount;
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <Pressable style={styles.sheet} onPress={() => {}}>
+          <View style={styles.grabber} />
+          <View style={styles.sheetHead}>
+            <Text style={styles.sheetTitle}>Filter</Text>
+            <TouchableOpacity onPress={() => setSelected([])} hitSlop={8} accessibilityRole="button">
+              <Text style={styles.sheetClose}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+
+          {selected.length > 0 ? (
+            <View style={styles.selectedPills}>
+              {selected.map((id) => {
+                const s = subById.get(id);
+                if (!s) return null;
+                return (
+                  <TouchableOpacity
+                    key={id}
+                    style={styles.selectedPill}
+                    onPress={() => toggleSub(id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${s.name}`}
+                  >
+                    <Text style={styles.selectedPillText}>{s.name}</Text>
+                    <Ionicons name="close" size={13} color={Colors.white} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : null}
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.filterBody}>
+            {primaries.map((p) => {
+              const subs = subcategoriesOf(p.id);
+              if (subs.length === 0) return null;
+              const isOpen = expanded.includes(p.id);
+              const selCount = subs.filter((s) => selected.includes(s.id)).length;
+              return (
+                <View key={p.id} style={styles.accordion}>
+                  <TouchableOpacity
+                    style={styles.accordionHead}
+                    onPress={() => toggleExpand(p.id)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: isOpen }}
+                  >
+                    <Text style={styles.accordionTitle}>{p.name}</Text>
+                    <Text style={styles.accordionMeta}>
+                      {selCount} of {subs.length} selected
+                    </Text>
+                    <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={Colors.textLight} />
+                  </TouchableOpacity>
+                  {isOpen
+                    ? subs.map((s) => {
+                        const on = selected.includes(s.id);
+                        return (
+                          <TouchableOpacity
+                            key={s.id}
+                            style={styles.checkRow}
+                            onPress={() => toggleSub(s.id)}
+                            activeOpacity={0.7}
+                            accessibilityRole="checkbox"
+                            accessibilityState={{ checked: on }}
+                          >
+                            <View style={[styles.checkbox, on && styles.checkboxOn]}>
+                              {on ? <Ionicons name="checkmark" size={13} color={Colors.white} /> : null}
+                            </View>
+                            <Text style={styles.checkLabel}>{s.name}</Text>
+                            <Text style={styles.checkCount}>{subCount(s.id)}</Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    : null}
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          <View style={styles.filterFooter}>
+            <TouchableOpacity activeOpacity={0.9} onPress={() => onApply(selected)}>
+              <LinearGradient
+                colors={PrimaryGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.showButton}
+              >
+                <Text style={styles.showButtonText}>
+                  Show {showCount} {showCount === 1 ? "service" : "services"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -515,8 +761,91 @@ const styles = StyleSheet.create({
   chip: { height: 44, borderRadius: 999, paddingHorizontal: 16, justifyContent: "center" },
   chipActive: { backgroundColor: Colors.textPrimary },
   chipInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
+  filterChip: {
+    height: 44,
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  filterChipCount: { fontSize: 15, fontWeight: "700", color: Colors.white },
   chipTextActive: { fontSize: 13, fontWeight: "500", color: Colors.white },
   chipTextInactive: { fontSize: 13, fontWeight: "500", color: Colors.textSecondary },
+
+  subChipsScroll: { flexGrow: 0, marginHorizontal: -20, marginTop: 8 },
+  subChip: { height: 34, borderRadius: 999, paddingHorizontal: 14, justifyContent: "center" },
+  subChipActive: { backgroundColor: "#FBD9D6" },
+  subChipInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
+  subChipTextActive: { fontSize: 13, fontWeight: "600", color: "#C2554F" },
+  subChipTextInactive: { fontSize: 13, fontWeight: "500", color: Colors.textSecondary },
+
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" },
+  sheet: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 10,
+    maxHeight: "82%",
+  },
+  grabber: { alignSelf: "center", width: 40, height: 4, borderRadius: 999, backgroundColor: Colors.border, marginBottom: 10 },
+  sheetHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20 },
+  sheetTitle: { fontSize: 24, fontWeight: "800", letterSpacing: -0.5, color: Colors.textPrimary },
+  sheetClose: { fontSize: 16, fontWeight: "600", color: Colors.primary },
+
+  selectedPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 20, paddingTop: 14 },
+  selectedPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 34,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.textPrimary,
+  },
+  selectedPillText: { fontSize: 13, fontWeight: "600", color: Colors.white },
+
+  filterBody: { padding: 20, paddingTop: 14, gap: 12 },
+  accordion: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  accordionHead: { minHeight: 52, flexDirection: "row", alignItems: "center", gap: 10 },
+  accordionTitle: { flex: 1, fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
+  accordionMeta: { fontSize: 13, color: Colors.textLight },
+  checkRow: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  checkLabel: { flex: 1, fontSize: 15, color: Colors.textPrimary },
+  checkCount: { fontSize: 14, fontWeight: "600", color: Colors.textLight },
+
+  filterFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  showButton: { height: 54, borderRadius: 999, justifyContent: "center", alignItems: "center" },
+  showButtonText: { fontSize: 16, fontWeight: "700", color: Colors.white },
 
   sectionHeader: {
     flexDirection: "row",

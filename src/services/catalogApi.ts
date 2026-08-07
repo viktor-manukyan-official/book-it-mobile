@@ -116,6 +116,7 @@ const HOME_VENUE_QUERY = /* GraphQL */ `
       categories {
         id
         name
+        parentId
       }
       services {
         ${VENUE_SERVICE_FIELDS}

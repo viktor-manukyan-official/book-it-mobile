@@ -19,6 +19,7 @@ export interface RoleType {
 export interface UserProfile {
   id: string;
   email: string;
+  phone?: string | null;
   firstName: string;
   lastName: string;
   profileImageUrl?: string | null;

@@ -34,6 +34,7 @@ export interface ServiceLite {
 export interface VenueCategory {
   id: string;
   name: string;
+  parentId?: string | null; // null = top-level (primary) category
 }
 
 // Live search suggestions (BOOK-68).
