@@ -49,6 +49,7 @@ function RootNavigator() {
       <Stack.Screen name="booking/details" />
       <Stack.Screen name="booking/rate" options={{ presentation: "modal" }} />
       <Stack.Screen name="booking/confirmed" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="notifications" />
       <Stack.Screen name="legal/terms" />
       <Stack.Screen name="legal/privacy" />
     </Stack>

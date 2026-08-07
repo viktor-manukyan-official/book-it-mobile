@@ -1,4 +1,6 @@
-import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { useAuth } from "../../src/hooks/useAuth";
 import { useHomeVenue } from "../../src/hooks/useHomeVenue";
+import { fetchUnreadCount } from "../../src/services/notificationsApi";
 import type { ServiceLite, VenueDetail } from "../../src/types/catalog";
 
 function initials(name: string): string {
@@ -37,17 +40,21 @@ const TILE_TINTS: { bg: string; fg: string }[] = [
 
 const dram = (amount: number) => `${amount.toLocaleString("en-US")} ֏`;
 
-/** Header greeting + avatar. Avatar → Profile tab. */
+/** Header greeting + notifications bell + avatar. */
 function Header({
   firstName,
   avatarInitials,
   photoUrl,
+  unread,
   onProfile,
+  onNotifications,
 }: {
   firstName: string;
   avatarInitials: string;
   photoUrl?: string | null;
+  unread: number;
   onProfile: () => void;
+  onNotifications: () => void;
 }) {
   return (
     <View style={styles.headerRow}>
@@ -57,6 +64,21 @@ function Header({
         </Text>
         <Text style={styles.title}>Book your visit</Text>
       </View>
+      <TouchableOpacity
+        style={styles.bell}
+        onPress={onNotifications}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+        hitSlop={8}
+      >
+        <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
+        {unread > 0 ? (
+          <View style={styles.bellBadge}>
+            <Text style={styles.bellBadgeText}>{unread > 9 ? "9+" : unread}</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.userAvatar}
         onPress={onProfile}
@@ -246,6 +268,20 @@ export default function HomeScreen() {
     ? initials(`${user.firstName} ${user.lastName}`)
     : initials(firstName);
 
+  // Unread notifications badge — refreshed whenever Home regains focus.
+  const [unread, setUnread] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void fetchUnreadCount()
+        .then((n) => active && setUnread(n))
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
   const openService = (s: ServiceLite) =>
     router.push({
       pathname: "/service/[id]",
@@ -275,7 +311,9 @@ export default function HomeScreen() {
         firstName={firstName}
         avatarInitials={avatarInitials}
         photoUrl={user?.profileImageUrl}
+        unread={unread}
         onProfile={() => router.push("/profile")}
+        onNotifications={() => router.push("/notifications")}
       />
       <SearchEntry onPress={() => router.push("/search")} />
 
@@ -423,6 +461,31 @@ const styles = StyleSheet.create({
   },
   userAvatarImage: { width: 44, height: 44, borderRadius: 999 },
   userAvatarText: { fontSize: 15, fontWeight: "600", color: "#B4453F" },
+  bell: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: Colors.card,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  bellBadge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: Colors.card,
+  },
+  bellBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.white },
 
   searchWrap: { paddingHorizontal: 20, paddingTop: 20 },
   searchBar: {

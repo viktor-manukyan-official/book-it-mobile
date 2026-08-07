@@ -131,6 +131,17 @@ export interface CustomerAppointment {
   timezone: string;
 }
 
+// Generic notification (BOOK-78).
+export interface AppNotification {
+  id: string;
+  type: string; // appointment_completed | appointment_confirmed | appointment_cancelled | promotion | ...
+  title: string;
+  body: string;
+  data?: Record<string, string> | null;
+  read: boolean;
+  createdAt: string;
+}
+
 // A customer review (BOOK-77).
 export interface Review {
   id: string;
