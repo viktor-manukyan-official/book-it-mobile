@@ -124,14 +124,20 @@ export default function ChooseTimeScreen() {
   // Technicians that have at least one slot on the selected date (for chip disabling).
   const techsWithSlots = useMemo(() => new Set(slots.map((s) => s.technicianId)), [slots]);
 
-  // Group slots by time of day.
+  // Group slots by time of day. Collapse duplicate start times to a single pill
+  // (when "Any" is selected, multiple technicians can offer the same time) — the
+  // first slot for that time is kept, and its technician is the one auto-assigned
+  // at booking. Slots arrive sorted by start time, so "first" is deterministic.
   const groups = useMemo(() => {
     const g: { key: string; label: string; items: AvailableSlot[] }[] = [
       { key: "morning", label: "MORNING", items: [] },
       { key: "afternoon", label: "AFTERNOON", items: [] },
       { key: "evening", label: "EVENING", items: [] },
     ];
+    const seen = new Set<string>();
     for (const s of slots) {
+      if (seen.has(s.startTime)) continue; // one pill per start time
+      seen.add(s.startTime);
       const h = hourInTz(s.startTime, tz);
       if (h < 12) g[0].items.push(s);
       else if (h < 17) g[1].items.push(s);
@@ -399,21 +405,13 @@ export default function ChooseTimeScreen() {
                   </View>
                   <View style={styles.slotWrap}>
                     {g.items.map((s) => {
-                      const on =
-                        selectedSlot?.startTime === s.startTime &&
-                        selectedSlot?.technicianId === s.technicianId;
-                      const showTech = technicianId === null;
+                      const on = selectedSlot?.startTime === s.startTime;
+                      // Pills show the time only; the technician (for "Any", the
+                      // first available at this time) is resolved at booking.
                       const pillInner = (
-                        <>
-                          <Text style={[styles.slotTime, on && styles.slotTextOn]}>
-                            {fmtTime(s.startTime, tz)}
-                          </Text>
-                          {showTech ? (
-                            <Text style={[styles.slotTech, on && styles.slotTextOn]}>
-                              {firstName(s.technicianName)}
-                            </Text>
-                          ) : null}
-                        </>
+                        <Text style={[styles.slotTime, on && styles.slotTextOn]}>
+                          {fmtTime(s.startTime, tz)}
+                        </Text>
                       );
                       return (
                         <TouchableOpacity
@@ -677,7 +675,6 @@ const styles = StyleSheet.create({
   },
   slotPillIdle: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
   slotTime: { fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
-  slotTech: { fontSize: 12, color: Colors.textLight },
   slotTextOn: { color: Colors.white },
 
   emptyState: { padding: 32, alignItems: "center", gap: 12 },

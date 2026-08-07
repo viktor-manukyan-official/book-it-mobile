@@ -80,6 +80,8 @@ export interface ServiceDetail {
   categoryName?: string | null;
   venueId: string;
   venueName: string;
+  venueAddress?: string | null;
+  venueCity?: string | null;
   locationId: string;
   timezone: string;
   customerCanSelectTechnician: boolean;
@@ -106,6 +108,26 @@ export interface AvailableSlot {
   endTime: string;
   technicianId: string;
   technicianName: string;
+}
+
+// A customer's own appointment, flattened for the confirmed / details screens (BOOK-74).
+export interface CustomerAppointment {
+  id: string;
+  status: string; // 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  startTime: string; // ISO
+  endTime: string;
+  price: number;
+  currency: string;
+  serviceName: string;
+  duration: number;
+  freeCancelMinutes: number;
+  cancellationFee: number;
+  cancellationFeeType: string;
+  technicianName: string;
+  venueName: string;
+  venueAddress?: string | null;
+  venueCity?: string | null;
+  timezone: string;
 }
 
 export interface DayAvailability {
