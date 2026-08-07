@@ -25,7 +25,39 @@ export interface ServiceLite {
   duration: number; // minutes
   price: number;
   currency: string;
+  categoryId?: string | null;
   categoryName?: string | null;
+}
+
+export interface VenueCategory {
+  id: string;
+  name: string;
+}
+
+// Live search suggestions (BOOK-68).
+export interface ServiceSuggestion {
+  id: string;
+  name: string;
+  categoryName?: string | null;
+  categoryMatched: boolean;
+  duration: number;
+  price: number;
+  currency: string;
+  venueId: string;
+  venueName: string;
+}
+
+export interface VenueSuggestion {
+  id: string;
+  name: string;
+  matchedLabel?: string | null;
+  rating?: number | null;
+  logoUrl?: string | null;
+}
+
+export interface SearchSuggestions {
+  services: ServiceSuggestion[];
+  venues: VenueSuggestion[];
 }
 
 export interface TeamMember {
@@ -38,6 +70,7 @@ export interface TeamMember {
 
 export interface VenueDetail extends VenueCard {
   services: ServiceLite[];
+  categories: VenueCategory[];
   team: TeamMember[];
   about?: string | null;
 }
