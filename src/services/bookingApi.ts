@@ -2,6 +2,7 @@ import { graphqlRequest, GraphQLRequestError } from "./graphqlClient";
 
 import type {
   AvailableSlot,
+  BookingListItem,
   BookingTechnician,
   CustomerAppointment,
   DayAvailability,
@@ -110,6 +111,7 @@ const MY_APPOINTMENT_QUERY = /* GraphQL */ `
   query MyAppointment($id: ID!) {
     myAppointment(id: $id) {
       id
+      companyId
       status
       startTime
       endTime
@@ -138,6 +140,7 @@ const MY_APPOINTMENT_QUERY = /* GraphQL */ `
 
 interface RawAppointment {
   id: string;
+  companyId: string;
   status: string;
   startTime: string;
   endTime: string;
@@ -154,6 +157,105 @@ interface RawAppointment {
   location: { name: string; address?: string | null; city?: string | null; timezone: string };
 }
 
+const MY_BOOKINGS_QUERY = /* GraphQL */ `
+  query MyBookings($pagination: PaginationInput, $filter: MyAppointmentsFilterInput) {
+    myAppointments(pagination: $pagination, filter: $filter) {
+      items {
+        id
+        status
+        startTime
+        price
+        currency
+        service { id name isActive duration }
+        technician { id firstName lastName }
+        location { name timezone }
+      }
+      meta { totalItems currentPage totalPages }
+    }
+  }
+`;
+
+interface RawBooking {
+  id: string;
+  status: string;
+  startTime: string;
+  price: number;
+  currency: string;
+  service: { id: string; name: string; isActive: boolean; duration: number };
+  technician: { id: string; firstName: string; lastName: string };
+  location: { name: string; timezone: string };
+}
+
+/** Paginated My Bookings for the active tab (BOOK-75). */
+export async function fetchMyBookings(
+  scope: "upcoming" | "past",
+  page = 1,
+  limit = 20,
+): Promise<{
+  items: BookingListItem[];
+  meta: { totalItems: number; currentPage: number; totalPages: number };
+}> {
+  const data = await graphqlRequest<{
+    myAppointments: {
+      items: RawBooking[];
+      meta: { totalItems: number; currentPage: number; totalPages: number };
+    };
+  }>(MY_BOOKINGS_QUERY, { pagination: { page, limit }, filter: { scope } });
+  return {
+    items: data.myAppointments.items.map((a) => ({
+      id: a.id,
+      status: a.status,
+      startTime: a.startTime,
+      price: a.price,
+      currency: a.currency,
+      serviceId: a.service.id,
+      serviceName: a.service.name,
+      serviceActive: a.service.isActive,
+      duration: a.service.duration,
+      technicianId: a.technician.id,
+      technicianName: `${a.technician.firstName} ${a.technician.lastName}`.trim(),
+      venueName: a.location.name,
+      timezone: a.location.timezone,
+    })),
+    meta: data.myAppointments.meta,
+  };
+}
+
+const CANCEL_APPOINTMENT_MUTATION = /* GraphQL */ `
+  mutation CancelAppointment($id: ID!, $companyId: ID!, $reason: String) {
+    cancelAppointment(id: $id, companyId: $companyId, reason: $reason) {
+      id
+      status
+    }
+  }
+`;
+
+// The appointment was already cancelled/completed (its state changed meanwhile).
+// A retried cancel also lands here, so the operation is effectively idempotent.
+export class AppointmentStateChangedError extends Error {}
+
+export async function cancelAppointment(
+  id: string,
+  companyId: string,
+  reason?: string,
+): Promise<{ id: string; status: string }> {
+  try {
+    const data = await graphqlRequest<{ cancelAppointment: { id: string; status: string } }>(
+      CANCEL_APPOINTMENT_MUTATION,
+      { id, companyId, reason: reason || undefined },
+    );
+    return data.cancelAppointment;
+  } catch (err) {
+    if (
+      err instanceof GraphQLRequestError &&
+      (err.code === "BAD_REQUEST" || /cannot cancel appointment with status/i.test(err.message))
+    ) {
+      throw new AppointmentStateChangedError(err.message);
+    }
+    throw err;
+  }
+}
+
 /** Fetch one of the customer's appointments (deep-link / confirmation safe). */
 export async function fetchMyAppointment(id: string): Promise<CustomerAppointment> {
   const data = await graphqlRequest<{ myAppointment: RawAppointment }>(MY_APPOINTMENT_QUERY, {
@@ -162,6 +264,7 @@ export async function fetchMyAppointment(id: string): Promise<CustomerAppointmen
   const a = data.myAppointment;
   return {
     id: a.id,
+    companyId: a.companyId,
     status: a.status,
     startTime: a.startTime,
     endTime: a.endTime,

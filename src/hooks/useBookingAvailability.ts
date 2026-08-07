@@ -37,6 +37,7 @@ interface Params {
   timezone: string;
   technicianSelectable: boolean;
   ready: boolean; // serviceDetail loaded
+  initialTechnicianId?: string | null; // "Book again" preselect
 }
 
 export function useBookingAvailability({
@@ -45,9 +46,11 @@ export function useBookingAvailability({
   timezone,
   technicianSelectable,
   ready,
+  initialTechnicianId = null,
 }: Params) {
   const [gender, setGenderState] = useState<GenderPref>("any");
-  const [technicianId, setTechnicianId] = useState<string | null>(null);
+  const [technicianId, setTechnicianId] = useState<string | null>(initialTechnicianId);
+  const validatedPreselect = useRef(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
 
@@ -99,6 +102,17 @@ export function useBookingAvailability({
     const t = setTimeout(loadFrame, 0);
     return () => clearTimeout(t);
   }, [ready, loadFrame]);
+
+  // A "Book again" preselected technician that no longer performs the service
+  // falls back to Any once the technician list is known.
+  useEffect(() => {
+    if (validatedPreselect.current || technicians.length === 0) return;
+    validatedPreselect.current = true;
+    if (technicianId && !technicians.some((t) => t.id === technicianId)) {
+      const t = setTimeout(() => setTechnicianId(null), 0);
+      return () => clearTimeout(t);
+    }
+  }, [technicians, technicianId]);
 
   // Load slots for the selected date.
   const loadSlots = useCallback(async () => {

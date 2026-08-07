@@ -113,6 +113,7 @@ export interface AvailableSlot {
 // A customer's own appointment, flattened for the confirmed / details screens (BOOK-74).
 export interface CustomerAppointment {
   id: string;
+  companyId: string;
   status: string; // 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
   startTime: string; // ISO
   endTime: string;
@@ -127,6 +128,23 @@ export interface CustomerAppointment {
   venueName: string;
   venueAddress?: string | null;
   venueCity?: string | null;
+  timezone: string;
+}
+
+// A row in the My Bookings list (BOOK-75).
+export interface BookingListItem {
+  id: string;
+  status: string;
+  startTime: string; // ISO
+  price: number;
+  currency: string;
+  serviceId: string;
+  serviceName: string;
+  serviceActive: boolean;
+  duration: number;
+  technicianId: string;
+  technicianName: string;
+  venueName: string;
   timezone: string;
 }
 

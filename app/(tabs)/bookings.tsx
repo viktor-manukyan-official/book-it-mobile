@@ -1,9 +1,9 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,82 +12,87 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../../constants/colors";
-import { useBookings } from "../../src/hooks/useBookings";
-import type { Appointment, AppointmentStatus } from "../../src/types/appointment";
+import { useMyBookings, type BookingScope } from "../../src/hooks/useMyBookings";
+import type { BookingListItem } from "../../src/types/catalog";
 
-type Tab = "upcoming" | "past";
+const money = (n: number) => `${n.toLocaleString("en-US")} ֏`;
 
-function initial(name: string): string {
-  return (name.trim()[0] ?? "?").toUpperCase();
+function initials(name: string): string {
+  return name.split(" ").map((w) => w[0]).filter(Boolean).join("").slice(0, 2).toUpperCase();
 }
 
-function money(amount: number): string {
-  return `${amount.toLocaleString("en-US")} ֏`;
-}
-
-// Formats an ISO time as e.g. "Tue, 4 Aug · 10:30".
-function formatWhen(iso: string): string {
-  const d = new Date(iso);
-  const date = d.toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-  const time = d.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${date} · ${time}`;
-}
-
-const STATUS_STYLE: Record<AppointmentStatus, { bg: string; fg: string; label: string }> = {
-  pending: { bg: "rgba(245,158,11,.14)", fg: "#B4790B", label: "Pending" },
-  confirmed: { bg: "rgba(59,130,246,.14)", fg: "#2563EB", label: "Confirmed" },
-  completed: { bg: "rgba(34,197,94,.14)", fg: "#15803D", label: "Completed" },
-  cancelled: { bg: "rgba(239,68,68,.12)", fg: "#DC2626", label: "Cancelled" },
-  no_show: { bg: "#F0F0F3", fg: "#9CA3AF", label: "No-show" },
-};
-
-// Muted avatar tints cycled by index for the service glyph.
-const TINTS = [
-  { bg: "#FFE0CC", fg: "#C2554F" },
-  { bg: "#E7DEFF", fg: "#7A63B8" },
+const TILE_TINTS: { bg: string; fg: string }[] = [
+  { bg: "#FBD5D0", fg: "#C2554F" },
+  { bg: "#E9D9F7", fg: "#7E4FC2" },
+  { bg: "#ECECEF", fg: "#6B7280" },
   { bg: "#D3EAD9", fg: "#3F8A5C" },
   { bg: "#D6E4FB", fg: "#3F5FB4" },
 ];
 
+const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
+  pending: { bg: "#FBE5C8", fg: "#8A5A12", label: "Pending" },
+  confirmed: { bg: "#D6E4FB", fg: "#3F5FB4", label: "Confirmed" },
+  completed: { bg: "#D3EAD9", fg: "#2E6B4F", label: "Completed" },
+  cancelled: { bg: "#FBD9D6", fg: "#B4453F", label: "Cancelled" },
+  no_show: { bg: "#ECECEF", fg: "#6B7280", label: "No-show" },
+};
+
+function fmtDateTime(iso: string, tz: string): string {
+  const d = new Date(iso);
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  // Time formatted separately — combining time fields into the same
+  // formatToParts() call omits hour/minute on Hermes.
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+  return `${get("weekday")}, ${get("day")} ${get("month")} · ${time}`;
+}
+
 function BookingCard({
-  appt,
+  item,
   index,
-  isPast,
+  past,
+  onPress,
+  onBookAgain,
 }: {
-  appt: Appointment;
+  item: BookingListItem;
   index: number;
-  isPast: boolean;
+  past: boolean;
+  onPress: () => void;
+  onBookAgain: () => void;
 }) {
-  const status = STATUS_STYLE[appt.status];
-  const tint = isPast ? { bg: "#F0F0F3", fg: "#9CA3AF" } : TINTS[index % TINTS.length];
-  const tech = `${appt.technician.firstName} ${appt.technician.lastName}`.trim();
+  const tint = TILE_TINTS[index % TILE_TINTS.length];
+  const status = STATUS[item.status] ?? STATUS.pending;
+  const canRebook = item.status === "completed" && item.serviceActive;
 
   return (
-    <View style={[styles.card, isPast && styles.cardPast]}>
-      <View style={styles.cardHead}>
-        <View style={styles.cardHeadLeft}>
-          <View style={[styles.avatar, { backgroundColor: tint.bg }]}>
-            <Text style={[styles.avatarText, { color: tint.fg }]}>
-              {initial(appt.service.name)}
-            </Text>
-          </View>
-          <View style={styles.cardHeadText}>
-            <Text style={styles.serviceName} numberOfLines={1}>
-              {appt.service.name}
-            </Text>
-            {tech ? (
-              <Text style={styles.tech} numberOfLines={1}>
-                {tech}
-              </Text>
-            ) : null}
-          </View>
+    <TouchableOpacity
+      style={[styles.card, past && styles.cardMuted]}
+      activeOpacity={0.85}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.serviceName}, ${status.label}`}
+    >
+      <View style={styles.cardTop}>
+        <View style={[styles.tile, { backgroundColor: tint.bg }]}>
+          <Text style={[styles.tileText, { color: tint.fg }]}>{initials(item.serviceName)}</Text>
+        </View>
+        <View style={styles.cardBody}>
+          <Text style={styles.serviceName} numberOfLines={1}>
+            {item.serviceName}
+          </Text>
+          <Text style={styles.technician} numberOfLines={1}>
+            {item.technicianName}
+          </Text>
         </View>
         <View style={[styles.badge, { backgroundColor: status.bg }]}>
           <Text style={[styles.badgeText, { color: status.fg }]}>{status.label}</Text>
@@ -96,112 +101,158 @@ function BookingCard({
 
       <View style={styles.divider} />
 
-      <View style={styles.cardFoot}>
-        <View style={styles.whenBlock}>
-          <Text style={styles.whenText}>{formatWhen(appt.startTime)}</Text>
-          <Text style={styles.venueText} numberOfLines={1}>
-            {appt.location.name}
+      <View style={styles.cardBottom}>
+        <View style={styles.whenWrap}>
+          <Text style={styles.when} numberOfLines={1}>
+            {fmtDateTime(item.startTime, item.timezone)}
+          </Text>
+          <Text style={styles.venue} numberOfLines={1}>
+            {item.venueName}
           </Text>
         </View>
-        <Text style={styles.price}>{money(appt.price)}</Text>
+        {past ? (
+          canRebook ? (
+            <TouchableOpacity onPress={onBookAgain} hitSlop={10} accessibilityRole="button">
+              <Text style={styles.bookAgain}>Book again</Text>
+            </TouchableOpacity>
+          ) : null
+        ) : (
+          <Text style={styles.price}>{money(item.price)}</Text>
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-function EmptyState({ tab, onBrowse }: { tab: Tab; onBrowse: () => void }) {
-  const upcoming = tab === "upcoming";
+function SkeletonCard() {
   return (
-    <View style={styles.empty}>
-      <View style={styles.emptyGlyph}>
-        <Text style={styles.emptyGlyphText}>{upcoming ? "🗓️" : "🕓"}</Text>
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={[styles.tile, styles.skel]} />
+        <View style={styles.cardBody}>
+          <View style={[styles.skelLine, { width: "60%" }]} />
+          <View style={[styles.skelLine, { width: "45%" }]} />
+        </View>
       </View>
-      <View style={styles.emptyTextBlock}>
-        <Text style={styles.emptyTitle}>
-          {upcoming ? "No upcoming bookings" : "No past visits yet"}
-        </Text>
-        <Text style={styles.emptyBody}>
-          {upcoming
-            ? "Find a venue and book your next appointment in a couple of taps."
-            : "Once you've been in, your history lands here — with one-tap rebooking."}
-        </Text>
-      </View>
-      <TouchableOpacity
-        style={styles.browseButton}
-        onPress={onBrowse}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel="Browse services"
-      >
-        <Text style={styles.browseText}>Browse services</Text>
-      </TouchableOpacity>
+      <View style={styles.divider} />
+      <View style={[styles.skelLine, { width: "50%" }]} />
     </View>
   );
 }
 
 export default function BookingsScreen() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("upcoming");
-  const { upcoming, past, loading, refreshing, error, refresh, retry } = useBookings();
+  const [scope, setScope] = useState<BookingScope>("upcoming");
+  const { items, loading, loadingMore, refreshing, error, hasMore, loadMore, refresh, retry } =
+    useMyBookings(scope);
 
-  const list = tab === "upcoming" ? upcoming : past;
+  // Re-query the active tab whenever the screen regains focus (reflects venue
+  // status changes without a restart).
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  const past = scope === "past";
+
+  const openDetails = (item: BookingListItem) =>
+    router.push({ pathname: "/booking/details", params: { id: item.id } });
+
+  const bookAgain = (item: BookingListItem) =>
+    router.push({
+      pathname: "/booking/time",
+      params: {
+        serviceId: item.serviceId,
+        name: item.serviceName,
+        duration: String(item.duration),
+        price: String(item.price),
+        technicianId: item.technicianId, // preselected when still valid; else Any
+      },
+    });
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.headerBlock}>
-        <Text style={styles.title}>My bookings</Text>
-        <View style={styles.segment}>
-          {(["upcoming", "past"] as Tab[]).map((t) => {
-            const on = tab === t;
-            return (
-              <TouchableOpacity
-                key={t}
-                style={[styles.segmentItem, on && styles.segmentItemActive]}
-                onPress={() => setTab(t)}
-                activeOpacity={0.9}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-              >
-                <Text style={[styles.segmentText, on && styles.segmentTextActive]}>
-                  {t === "upcoming" ? "Upcoming" : "Past"}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+      <Text style={styles.title}>My bookings</Text>
+
+      <View style={styles.segmented}>
+        {(["upcoming", "past"] as BookingScope[]).map((s) => {
+          const on = scope === s;
+          return (
+            <TouchableOpacity
+              key={s}
+              style={[styles.segment, on && styles.segmentOn]}
+              onPress={() => setScope(s)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on }}
+            >
+              <Text style={on ? styles.segmentTextOn : styles.segmentText}>
+                {s === "upcoming" ? "Upcoming" : "Past"}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={Colors.primary} />
+        <View style={styles.list}>
+          {[0, 1, 2].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </View>
       ) : error ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyBody}>{error}</Text>
-          <TouchableOpacity style={styles.browseButton} onPress={retry}>
-            <Text style={styles.browseText}>Try again</Text>
+          <Text style={styles.dimText}>{error}</Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={retry}>
+            <Text style={styles.primaryButtonText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.centered}>
+          <Text style={styles.emptyHeading}>
+            {past ? "No past visits yet" : "No upcoming bookings"}
+          </Text>
+          <Text style={styles.dimText}>
+            {past
+              ? "Your visit history and one-tap rebooking will show up here."
+              : "When you book a service, it will appear here."}
+          </Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.navigate("/(tabs)/explore")}
+          >
+            <Text style={styles.primaryButtonText}>Browse services</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView
-          contentContainerStyle={list.length === 0 ? styles.listEmpty : styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={refresh}
-              tintColor={Colors.primary}
+        <FlatList
+          data={items}
+          keyExtractor={(i) => i.id}
+          renderItem={({ item, index }) => (
+            <BookingCard
+              item={item}
+              index={index}
+              past={past}
+              onPress={() => openDetails(item)}
+              onBookAgain={() => bookAgain(item)}
             />
-          }
-        >
-          {list.length === 0 ? (
-            <EmptyState tab={tab} onBrowse={() => router.push("/")} />
-          ) : (
-            list.map((a, i) => (
-              <BookingCard key={a.id} appt={a} index={i} isPast={tab === "past"} />
-            ))
           )}
-        </ScrollView>
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={Colors.primary} />
+          }
+          ListFooterComponent={
+            loadingMore && hasMore ? (
+              <View style={styles.footerLoading}>
+                <ActivityIndicator color={Colors.primary} />
+              </View>
+            ) : null
+          }
+        />
       )}
     </SafeAreaView>
   );
@@ -209,88 +260,78 @@ export default function BookingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  headerBlock: { paddingHorizontal: 20, paddingTop: 8, gap: 18 },
-  title: { fontSize: 26, fontWeight: "700", letterSpacing: -0.5, color: Colors.textPrimary },
-  segment: {
-    backgroundColor: "#EBEBEF",
+  title: {
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+    color: Colors.textPrimary,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    marginBottom: 16,
+  },
+  segmented: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    backgroundColor: "#EBEAEE",
     borderRadius: 999,
     padding: 4,
-    flexDirection: "row",
-    gap: 4,
   },
-  segmentItem: {
-    flex: 1,
-    height: 40,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  segmentItemActive: {
-    backgroundColor: Colors.white,
+  segment: { flex: 1, minHeight: 44, borderRadius: 999, justifyContent: "center", alignItems: "center" },
+  segmentOn: {
+    backgroundColor: Colors.card,
     shadowColor: "#1A1A2E",
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  segmentText: { fontSize: 15, fontWeight: "500", color: "#8B8B95" },
-  segmentTextActive: { color: Colors.textPrimary, fontWeight: "600" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 16 },
-  list: { padding: 20, gap: 12 },
-  listEmpty: { flexGrow: 1 },
+  segmentText: { fontSize: 15, fontWeight: "600", color: Colors.textSecondary },
+  segmentTextOn: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
+
+  list: { padding: 20, gap: 14 },
+  footerLoading: { paddingVertical: 16, alignItems: "center" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 12 },
+  emptyHeading: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary },
+  dimText: { fontSize: 15, color: Colors.textSecondary, textAlign: "center", lineHeight: 22 },
+  primaryButton: {
+    marginTop: 6,
+    minHeight: 44,
+    borderRadius: 999,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  primaryButtonText: { fontSize: 15, fontWeight: "600", color: Colors.white },
+
   card: {
     backgroundColor: Colors.card,
     borderRadius: 20,
     padding: 16,
     gap: 12,
     shadowColor: "#1A1A2E",
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    elevation: 2,
   },
-  cardPast: { opacity: 0.78 },
-  cardHead: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
-  cardHeadLeft: { flexDirection: "row", gap: 12, flex: 1, minWidth: 0 },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: { fontSize: 18, fontWeight: "700" },
-  cardHeadText: { flex: 1, minWidth: 0, gap: 3 },
-  serviceName: { fontSize: 16, fontWeight: "600", color: Colors.textPrimary },
-  tech: { fontSize: 13, color: Colors.textSecondary },
-  badge: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
-  badgeText: { fontSize: 12, fontWeight: "600" },
-  divider: { height: 1, backgroundColor: "#F0F0F3" },
-  cardFoot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
-  whenBlock: { gap: 2, flex: 1, minWidth: 0 },
-  whenText: { fontSize: 15, fontWeight: "600", color: Colors.textPrimary },
-  venueText: { fontSize: 12, color: Colors.textLight },
-  price: { fontSize: 14, fontWeight: "600", color: Colors.textPrimary },
-  empty: { flex: 1, justifyContent: "center", alignItems: "center", gap: 18, paddingHorizontal: 46, paddingBottom: 40 },
-  emptyGlyph: {
-    width: 104,
-    height: 104,
-    borderRadius: 34,
-    backgroundColor: "#FFECE2",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyGlyphText: { fontSize: 40 },
-  emptyTextBlock: { gap: 8, alignItems: "center" },
-  emptyTitle: { fontSize: 20, fontWeight: "600", letterSpacing: -0.2, color: Colors.textPrimary },
-  emptyBody: { fontSize: 15, lineHeight: 22, color: Colors.textSecondary, textAlign: "center" },
-  browseButton: {
-    height: 50,
-    borderRadius: 999,
-    paddingHorizontal: 26,
-    backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  browseText: { fontSize: 16, fontWeight: "600", color: Colors.white },
+  cardMuted: { opacity: 0.72 },
+  cardTop: { flexDirection: "row", alignItems: "center", gap: 13 },
+  tile: { width: 52, height: 52, borderRadius: 15, justifyContent: "center", alignItems: "center" },
+  tileText: { fontSize: 18, fontWeight: "700" },
+  cardBody: { flex: 1, minWidth: 0, gap: 3 },
+  serviceName: { fontSize: 17, fontWeight: "700", color: Colors.textPrimary },
+  technician: { fontSize: 14, color: Colors.textSecondary },
+  badge: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  badgeText: { fontSize: 12, fontWeight: "700" },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border },
+  cardBottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  whenWrap: { flex: 1, minWidth: 0, gap: 2 },
+  when: { fontSize: 15, fontWeight: "700", color: Colors.textPrimary },
+  venue: { fontSize: 13, color: Colors.textLight },
+  price: { fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
+  bookAgain: { fontSize: 15, fontWeight: "700", color: Colors.primary },
+
+  skel: { backgroundColor: "#ECECEF" },
+  skelLine: { height: 12, borderRadius: 6, backgroundColor: "#ECECEF" },
 });

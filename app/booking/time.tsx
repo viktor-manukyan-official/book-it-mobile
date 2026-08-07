@@ -74,6 +74,7 @@ export default function ChooseTimeScreen() {
     duration?: string;
     price?: string;
     mode?: string;
+    technicianId?: string; // "Book again" preselect
   }>();
   const serviceId = params.serviceId ?? "";
   const reschedule = params.mode === "reschedule";
@@ -107,6 +108,7 @@ export default function ChooseTimeScreen() {
     timezone: service?.timezone ?? "UTC",
     technicianSelectable: service?.customerCanSelectTechnician ?? false,
     ready,
+    initialTechnicianId: params.technicianId ?? null,
   });
 
   const tz = service?.timezone ?? "UTC";
