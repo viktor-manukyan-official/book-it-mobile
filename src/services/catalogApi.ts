@@ -1,6 +1,8 @@
 import { graphqlRequest } from "./graphqlClient";
 
 import type {
+  ExploreFilter,
+  ExploreResult,
   SearchSuggestions,
   VenueCard,
   VenueDetail,
@@ -30,10 +32,31 @@ const VENUE_CARD_FIELDS = /* GraphQL */ `
   serviceCount
   priceFrom
   categoryTags
+  serviceNames
   openNow
   hoursToday
+  statusLabel
   rating
   distanceKm
+`;
+
+const EXPLORE_VENUES_QUERY = /* GraphQL */ `
+  query ExploreVenues($pagination: PaginationInput, $filter: VenueFilterInput) {
+    exploreVenues(pagination: $pagination, filter: $filter) {
+      items {
+        ${VENUE_CARD_FIELDS}
+      }
+      categories {
+        id
+        name
+      }
+      meta {
+        totalItems
+        currentPage
+        totalPages
+      }
+    }
+  }
 `;
 
 const VENUES_QUERY = /* GraphQL */ `
@@ -56,8 +79,14 @@ const VENUE_QUERY = /* GraphQL */ `
     venue(id: $id) {
       ${VENUE_CARD_FIELDS}
       about
+      phone
+      reviewCount
       services {
         ${VENUE_SERVICE_FIELDS}
+      }
+      categories {
+        id
+        name
       }
       team {
         id
@@ -65,6 +94,12 @@ const VENUE_QUERY = /* GraphQL */ `
         lastName
         jobTitle
         bio
+      }
+      workingHours {
+        dayOfWeek
+        openTime
+        closeTime
+        isClosed
       }
     }
   }
@@ -145,6 +180,21 @@ export async function fetchVenues(
     },
   );
   return data.venues;
+}
+
+/** Explore discovery: a page of venues + category facet chips (BOOK-69). */
+export async function fetchExploreVenues(
+  filter: ExploreFilter = {},
+  pagination: { page?: number; limit?: number } = {},
+): Promise<ExploreResult> {
+  const data = await graphqlRequest<{ exploreVenues: ExploreResult }>(
+    EXPLORE_VENUES_QUERY,
+    {
+      filter,
+      pagination: { page: pagination.page ?? 1, limit: pagination.limit ?? 20 },
+    },
+  );
+  return data.exploreVenues;
 }
 
 /** Full venue profile: company + its services, team, hours. */

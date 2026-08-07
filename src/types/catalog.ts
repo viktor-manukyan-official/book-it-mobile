@@ -12,8 +12,10 @@ export interface VenueCard {
   serviceCount: number;
   priceFrom?: number | null;
   categoryTags: string[];
+  serviceNames?: string[];
   openNow: boolean;
   hoursToday?: string | null;
+  statusLabel?: string | null;
   rating?: number | null;
   distanceKm?: number | null;
 }
@@ -60,6 +62,22 @@ export interface SearchSuggestions {
   venues: VenueSuggestion[];
 }
 
+// Explore results (BOOK-69): a page of venues + the category facet chips.
+export interface ExploreResult {
+  items: VenueCard[];
+  meta: { totalItems: number; currentPage: number; totalPages: number };
+  categories: VenueCategory[];
+}
+
+export interface ExploreFilter {
+  search?: string;
+  categoryId?: string;
+  city?: string;
+  openNow?: boolean;
+  minRating?: number;
+  sort?: "relevance" | "rating";
+}
+
 export interface TeamMember {
   id: string;
   firstName: string;
@@ -68,9 +86,19 @@ export interface TeamMember {
   bio?: string | null;
 }
 
+export interface VenueWorkingHours {
+  dayOfWeek: number; // 0=Sunday .. 6=Saturday
+  openTime: string;
+  closeTime: string;
+  isClosed: boolean;
+}
+
 export interface VenueDetail extends VenueCard {
   services: ServiceLite[];
   categories: VenueCategory[];
   team: TeamMember[];
   about?: string | null;
+  phone?: string | null;
+  reviewCount?: number | null;
+  workingHours?: VenueWorkingHours[];
 }

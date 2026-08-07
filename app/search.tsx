@@ -40,7 +40,13 @@ const TILE_TINTS: { bg: string; fg: string }[] = [
 const dram = (amount: number) => `${amount.toLocaleString("en-US")} ֏`;
 
 const serviceLabel = (s: ServiceSuggestion) =>
-  s.categoryMatched && s.categoryName ? `${s.categoryName} — ${s.name}` : s.name;
+  // Prefix the category for context when the match came from it — but not when
+  // the category and service share a name (avoids "Hair transplant — Hair transplant").
+  s.categoryMatched &&
+  s.categoryName &&
+  s.categoryName.toLowerCase() !== s.name.toLowerCase()
+    ? `${s.categoryName} — ${s.name}`
+    : s.name;
 
 const venueLabel = (v: VenueSuggestion) =>
   v.matchedLabel ? `${v.name} — ${v.matchedLabel}` : v.name;

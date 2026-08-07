@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Linking,
   Platform,
   ScrollView,
@@ -15,56 +16,24 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors, PrimaryGradient } from "../../constants/colors";
-import type { ServiceLite, TeamMember } from "../../src/types/catalog";
+import { useVenueProfile } from "../../src/hooks/useVenueProfile";
+import type { ServiceLite, TeamMember, VenueDetail } from "../../src/types/catalog";
 
 type Tab = "services" | "team" | "about";
 
-// ⚠️ UI-only screen: static mock data on the frontend (no API).
-// Mirrors the "Venue profile — services" design mockup.
-const MOCK_VENUE = {
-  name: "Lumière Beauty Studio",
-  address: "Babayan 36",
-  city: "Yerevan",
-  distanceKm: 0.4,
-  rating: 4.9,
-  reviewCount: 128,
-  openNow: true,
-  hoursToday: "9:00–20:00",
-  closedNote: "Closed Sundays",
-  about:
-    "Lumière Beauty Studio is a full-service salon in the heart of Yerevan, offering hair, spa, and nail care by a team of senior specialists. Walk-ins welcome; booking recommended for weekends.",
-  services: [
-    { id: "s1", name: "Face massage", description: null, duration: 45, price: 15000, currency: "AMD", categoryName: "Spa" },
-    { id: "s2", name: "Aroma Spa Ritual", description: null, duration: 90, price: 25000, currency: "AMD", categoryName: "Spa" },
-    { id: "s3", name: "Deep Tissue Massage", description: null, duration: 60, price: 18000, currency: "AMD", categoryName: "Spa" },
-    { id: "s4", name: "Hot Stone Therapy", description: null, duration: 75, price: 22000, currency: "AMD", categoryName: "Spa" },
-    { id: "s5", name: "Balayage & Gloss", description: null, duration: 150, price: 45000, currency: "AMD", categoryName: "Hair" },
-    { id: "s6", name: "Keratin Smoothing", description: null, duration: 120, price: 38000, currency: "AMD", categoryName: "Hair" },
-    { id: "s7", name: "Haircut & Style", description: null, duration: 45, price: 9000, currency: "AMD", categoryName: "Hair" },
-    { id: "s8", name: "Blow Dry", description: null, duration: 30, price: 6000, currency: "AMD", categoryName: "Hair" },
-    { id: "s9", name: "Gel Manicure", description: null, duration: 60, price: 8000, currency: "AMD", categoryName: "Nails" },
-    { id: "s10", name: "Classic Pedicure", description: null, duration: 60, price: 10000, currency: "AMD", categoryName: "Nails" },
-    { id: "s11", name: "Nail Art Add-on", description: null, duration: 30, price: 4000, currency: "AMD", categoryName: "Nails" },
-  ] as ServiceLite[],
-  team: [
-    { id: "t1", firstName: "Anushik", lastName: "Movsisyan", jobTitle: "Massage Therapist", bio: null },
-    { id: "t2", firstName: "Karen", lastName: "Grigoryan", jobTitle: "Senior Stylist", bio: null },
-    { id: "t3", firstName: "Mariam", lastName: "Petrosyan", jobTitle: "Nail Artist", bio: null },
-  ] as TeamMember[],
-};
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function initials(name: string): string {
   return name
     .split(" ")
     .map((w) => w[0])
+    .filter(Boolean)
     .join("")
     .slice(0, 2)
     .toUpperCase();
 }
 
-function money(amount: number): string {
-  return `${amount.toLocaleString("en-US")} ֏`;
-}
+const money = (amount: number) => `${amount.toLocaleString("en-US")} ֏`;
 
 const TINTS: { bg: string; fg: string }[] = [
   { bg: "#FBD5D0", fg: "#C2554F" },
@@ -74,30 +43,45 @@ const TINTS: { bg: string; fg: string }[] = [
   { bg: "#D6E4FB", fg: "#3F5FB4" },
 ];
 
+// Regular closed-day note, e.g. "Closed Sundays" — days with no open hours.
+function closedDayNote(venue: VenueDetail): string | null {
+  const hours = venue.workingHours ?? [];
+  if (hours.length === 0) return null;
+  const openDays = new Set(hours.filter((h) => !h.isClosed).map((h) => h.dayOfWeek));
+  const closed = [0, 1, 2, 3, 4, 5, 6].filter((d) => !openDays.has(d));
+  if (closed.length === 0 || closed.length === 7) return null;
+  return `Closed ${closed.map((d) => `${WEEKDAYS[d]}s`).join(", ")}`;
+}
+
 function ServiceRow({
   service,
   index,
+  onOpen,
   onBook,
 }: {
   service: ServiceLite;
   index: number;
+  onOpen: () => void;
   onBook: () => void;
 }) {
   const tint = TINTS[index % TINTS.length];
   return (
-    <View style={styles.serviceCard}>
+    <TouchableOpacity
+      style={styles.serviceCard}
+      activeOpacity={0.85}
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={`${service.name}, ${service.duration} minutes, ${money(service.price)}`}
+    >
       <View style={[styles.serviceIcon, { backgroundColor: tint.bg }]}>
-        <Text style={[styles.serviceIconText, { color: tint.fg }]}>
-          {initials(service.name)}
-        </Text>
+        <Text style={[styles.serviceIconText, { color: tint.fg }]}>{initials(service.name)}</Text>
       </View>
       <View style={styles.serviceBody}>
         <Text style={styles.serviceName} numberOfLines={1}>
           {service.name}
         </Text>
         <Text style={styles.serviceMeta}>
-          {service.duration} min ·{" "}
-          <Text style={styles.servicePrice}>{money(service.price)}</Text>
+          {service.duration} min · <Text style={styles.servicePrice}>{money(service.price)}</Text>
         </Text>
       </View>
       <TouchableOpacity
@@ -105,6 +89,7 @@ function ServiceRow({
         onPress={onBook}
         accessibilityRole="button"
         accessibilityLabel={`Book ${service.name}`}
+        hitSlop={6}
       >
         <LinearGradient
           colors={PrimaryGradient}
@@ -115,7 +100,7 @@ function ServiceRow({
           <Text style={styles.bookText}>Book</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -125,17 +110,13 @@ function TeamRow({ member, index }: { member: TeamMember; index: number }) {
   return (
     <View style={styles.serviceCard}>
       <View style={[styles.serviceIcon, { backgroundColor: tint.bg }]}>
-        <Text style={[styles.serviceIconText, { color: tint.fg }]}>
-          {initials(name)}
-        </Text>
+        <Text style={[styles.serviceIconText, { color: tint.fg }]}>{initials(name)}</Text>
       </View>
       <View style={styles.serviceBody}>
         <Text style={styles.serviceName} numberOfLines={1}>
           {name}
         </Text>
-        {member.jobTitle ? (
-          <Text style={styles.serviceMeta}>{member.jobTitle}</Text>
-        ) : null}
+        {member.jobTitle ? <Text style={styles.serviceMeta}>{member.jobTitle}</Text> : null}
       </View>
     </View>
   );
@@ -189,39 +170,121 @@ function TabItem({
 export default function VenueProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const venue = MOCK_VENUE;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { venue, loading, error, favourite, toggleFav, notify, registerNotify, retry } =
+    useVenueProfile(id);
+
   const [tab, setTab] = useState<Tab>("services");
-  const [category, setCategory] = useState<string>("All");
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
-  // Distinct service categories for the filter chips, "All" first.
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    for (const s of venue.services) if (s.categoryName) set.add(s.categoryName);
-    return ["All", ...set];
-  }, [venue.services]);
+  const shownServices = useMemo(() => {
+    if (!venue) return [];
+    return categoryId ? venue.services.filter((s) => s.categoryId === categoryId) : venue.services;
+  }, [venue, categoryId]);
 
-  const shownServices = useMemo(
-    () =>
-      category === "All"
-        ? venue.services
-        : venue.services.filter((s) => s.categoryName === category),
-    [venue.services, category],
-  );
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
-  const onBook = (service: ServiceLite) =>
+  const openService = (s: ServiceLite) =>
     router.push({
       pathname: "/service/[id]",
       params: {
-        id: service.id,
-        name: service.name,
-        category: service.categoryName ?? "",
-        duration: String(service.duration),
-        price: String(service.price),
+        id: s.id,
+        name: s.name,
+        category: s.categoryName ?? "",
+        duration: String(s.duration),
+        price: String(s.price),
       },
     });
 
+  const bookService = (s: ServiceLite) =>
+    router.push({
+      pathname: "/booking/time",
+      params: { serviceId: s.id, name: s.name, duration: String(s.duration), price: String(s.price) },
+    });
+
+  // Hero is rendered in every state (loading / error / loaded).
+  const Hero = (
+    <LinearGradient
+      colors={["#FFB88C", "#FF7E6B", "#FF6B6B"]}
+      start={{ x: 0.2, y: 0 }}
+      end={{ x: 0.8, y: 1 }}
+      style={[styles.hero, { paddingTop: insets.top + 8 }]}
+    >
+      <View style={styles.heroButtons}>
+        <TouchableOpacity
+          style={styles.circleButton}
+          onPress={goBack}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          hitSlop={8}
+        >
+          <Ionicons name="chevron-back" size={22} color="#8A3B32" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.circleButton}
+          onPress={toggleFav}
+          accessibilityRole="button"
+          accessibilityLabel={favourite ? "Remove from saved" : "Save venue"}
+          accessibilityState={{ selected: favourite }}
+          hitSlop={8}
+        >
+          <Ionicons
+            name={favourite ? "heart" : "heart-outline"}
+            size={20}
+            color={favourite ? Colors.primary : "#8A3B32"}
+          />
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        {Hero}
+        <View style={styles.cardWrap}>
+          <View style={[styles.card, { gap: 12 }]}>
+            <View style={[styles.skelLine, { width: "70%", height: 20 }]} />
+            <View style={[styles.skelLine, { width: "55%" }]} />
+            <View style={[styles.skelLine, { width: "40%" }]} />
+          </View>
+        </View>
+        <View style={[styles.list, { marginTop: 20 }]}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.serviceCard}>
+              <View style={[styles.serviceIcon, styles.skel]} />
+              <View style={styles.serviceBody}>
+                <View style={[styles.skelLine, { width: "60%" }]} />
+                <View style={[styles.skelLine, { width: "40%" }]} />
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !venue) {
+    return (
+      <View style={styles.container}>
+        {Hero}
+        <View style={styles.errorWrap}>
+          <Text style={styles.dimText}>{error ?? "Venue unavailable."}</Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={retry}>
+            <Text style={styles.primaryButtonText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const closedNote = closedDayNote(venue);
+  const address = [venue.address, venue.city].filter(Boolean).join(", ");
+  const statusText = venue.openNow ? `Open today ${venue.hoursToday ?? ""}`.trim() : "Closed today";
+
   const openDirections = () => {
-    const q = encodeURIComponent(`${venue.name} ${venue.address} ${venue.city}`);
+    const q = encodeURIComponent(`${venue.name} ${address}`);
     const url = Platform.select({
       ios: `http://maps.apple.com/?q=${q}`,
       default: `https://www.google.com/maps/search/?api=1&query=${q}`,
@@ -229,8 +292,12 @@ export default function VenueProfileScreen() {
     if (url) void Linking.openURL(url);
   };
 
+  const onCall = () => venue.phone && void Linking.openURL(`tel:${venue.phone}`);
+
   const onShare = () =>
-    void Share.share({ message: `${venue.name} — ${venue.address}, ${venue.city}` });
+    void Share.share({
+      message: `${venue.name} — ${address}\nhttps://bookit.am/venue/${venue.id}`,
+    });
 
   return (
     <View style={styles.container}>
@@ -238,49 +305,40 @@ export default function VenueProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       >
-        {/* Hero */}
-        <LinearGradient
-          colors={["#FFB88C", "#FF7E6B", "#FF6B6B"]}
-          start={{ x: 0.2, y: 0 }}
-          end={{ x: 0.8, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 8 }]}
-        >
-          <View style={styles.heroButtons}>
-            <TouchableOpacity
-              style={styles.circleButton}
-              onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            >
-              <Ionicons name="chevron-back" size={22} color="#8A3B32" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.circleButton}
-              accessibilityRole="button"
-              accessibilityLabel="Save venue"
-            >
-              <Ionicons name="heart-outline" size={20} color="#8A3B32" />
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
+        {Hero}
 
         {/* Floating info card */}
         <View style={styles.cardWrap}>
           <View style={styles.card}>
             <View style={styles.cardHead}>
               <View style={styles.cardHeadText}>
-                <Text style={styles.venueName}>{venue.name}</Text>
-                <Text style={styles.venueAddr}>
-                  {venue.address}, {venue.city}
+                <Text style={styles.venueName} numberOfLines={2}>
+                  {venue.name}
+                </Text>
+                <Text style={styles.venueAddr} numberOfLines={1}>
+                  {address}
                   {venue.distanceKm != null ? ` · ${venue.distanceKm.toFixed(1)} km` : ""}
                 </Text>
               </View>
-              <Text style={styles.rating}>
-                ★ {venue.rating.toFixed(1)}{" "}
-                <Text style={styles.reviewCount}>({venue.reviewCount})</Text>
-              </Text>
+              {venue.rating != null ? (
+                <Text style={styles.rating}>
+                  ★ {venue.rating.toFixed(1)}
+                  {venue.reviewCount != null ? (
+                    <Text style={styles.reviewCount}> ({venue.reviewCount})</Text>
+                  ) : null}
+                </Text>
+              ) : (
+                <Text style={styles.newBadge}>New</Text>
+              )}
             </View>
-            <View style={styles.openRow}>
+
+            <TouchableOpacity
+              style={styles.openRow}
+              onPress={() => setScheduleOpen((v) => !v)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Show weekly hours"
+            >
               <View
                 style={[
                   styles.dot,
@@ -293,14 +351,35 @@ export default function VenueProfileScreen() {
                   { color: venue.openNow ? Colors.success : Colors.textLight },
                 ]}
               >
-                {venue.openNow ? `Open today ${venue.hoursToday ?? ""}`.trim() : "Closed"}
+                {statusText}
               </Text>
-              {venue.closedNote ? (
-                <Text style={styles.closedNote}> · {venue.closedNote}</Text>
-              ) : null}
-            </View>
+              {closedNote ? <Text style={styles.closedNote}> · {closedNote}</Text> : null}
+            </TouchableOpacity>
+
+            {scheduleOpen ? (
+              <View style={styles.schedule}>
+                {WEEKDAYS.map((day, d) => {
+                  const rows = (venue.workingHours ?? []).filter(
+                    (h) => h.dayOfWeek === d && !h.isClosed,
+                  );
+                  const label =
+                    rows.length > 0
+                      ? rows.map((r) => `${r.openTime.slice(0, 5)}–${r.closeTime.slice(0, 5)}`).join(", ")
+                      : "Closed";
+                  return (
+                    <View key={day} style={styles.scheduleRow}>
+                      <Text style={styles.scheduleDay}>{day}</Text>
+                      <Text style={styles.scheduleHours}>{label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
+
             <View style={styles.actions}>
-              <ActionButton icon="call-outline" label="Call" onPress={openDirections} />
+              {venue.phone ? (
+                <ActionButton icon="call-outline" label="Call" onPress={onCall} />
+              ) : null}
               <ActionButton icon="navigate-outline" label="Directions" onPress={openDirections} />
               <ActionButton icon="share-outline" label="Share" onPress={onShare} />
             </View>
@@ -326,38 +405,72 @@ export default function VenueProfileScreen() {
 
         {tab === "services" && (
           <>
-            {categories.length > 1 && (
+            {venue.services.length > 0 && venue.categories.length > 0 ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsRow}
                 style={styles.chipsScroll}
               >
-                {categories.map((c) => {
-                  const on = c === category;
+                {[{ id: null, name: "All" }, ...venue.categories].map((c) => {
+                  const on = categoryId === c.id;
                   return (
                     <TouchableOpacity
-                      key={c}
+                      key={c.id ?? "all"}
                       style={[styles.chip, on ? styles.chipActive : styles.chipInactive]}
-                      onPress={() => setCategory(c)}
+                      onPress={() => setCategoryId(c.id)}
                       activeOpacity={0.8}
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                     >
                       <Text style={on ? styles.chipTextActive : styles.chipTextInactive}>
-                        {c}
+                        {c.name}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
-            )}
+            ) : null}
+
             <View style={styles.list}>
-              {shownServices.length === 0 ? (
-                <Text style={styles.dimText}>No services in this category.</Text>
+              {venue.services.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyHeading}>No services yet</Text>
+                  <Text style={styles.dimText}>
+                    This venue hasn&apos;t opened booking yet. We&apos;ll let you know when it does.
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.primaryButton, notify === "done" && styles.notifyDone]}
+                    onPress={registerNotify}
+                    disabled={notify !== "idle"}
+                    accessibilityRole="button"
+                    accessibilityLabel="Notify me when booking opens"
+                  >
+                    {notify === "sending" ? (
+                      <ActivityIndicator color={Colors.white} />
+                    ) : (
+                      <Text style={styles.primaryButtonText}>
+                        {notify === "done" ? "We'll notify you ✓" : "Notify me"}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ) : shownServices.length === 0 ? (
+                <View style={styles.inlineEmpty}>
+                  <Text style={styles.dimText}>No services in this category.</Text>
+                  <TouchableOpacity onPress={() => setCategoryId(null)} hitSlop={8}>
+                    <Text style={styles.showAll}>Show all</Text>
+                  </TouchableOpacity>
+                </View>
               ) : (
                 shownServices.map((s, i) => (
-                  <ServiceRow key={s.id} service={s} index={i} onBook={() => onBook(s)} />
+                  <ServiceRow
+                    key={s.id}
+                    service={s}
+                    index={i}
+                    onOpen={() => openService(s)}
+                    onBook={() => bookService(s)}
+                  />
                 ))
               )}
             </View>
@@ -376,7 +489,9 @@ export default function VenueProfileScreen() {
 
         {tab === "about" && (
           <View style={styles.list}>
-            <Text style={styles.about}>{venue.about}</Text>
+            {venue.about ? <Text style={styles.about}>{venue.about}</Text> : null}
+            {venue.phone ? <Text style={styles.aboutMeta}>📞 {venue.phone}</Text> : null}
+            {address ? <Text style={styles.aboutMeta}>📍 {address}</Text> : null}
           </View>
         )}
       </ScrollView>
@@ -390,9 +505,9 @@ const styles = StyleSheet.create({
   hero: { height: 232, paddingHorizontal: 20, paddingBottom: 18 },
   heroButtons: { flexDirection: "row", justifyContent: "space-between" },
   circleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     backgroundColor: "rgba(255,255,255,.8)",
     alignItems: "center",
     justifyContent: "center",
@@ -409,25 +524,25 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 5,
   },
-  cardHead: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 10,
-  },
+  cardHead: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
   cardHeadText: { flex: 1, minWidth: 0, gap: 4 },
   venueName: { fontSize: 21, fontWeight: "700", letterSpacing: -0.3, color: Colors.textPrimary },
   venueAddr: { fontSize: 13, color: Colors.textSecondary },
   rating: { fontSize: 14, fontWeight: "600", color: Colors.star },
   reviewCount: { fontSize: 13, fontWeight: "500", color: Colors.textLight },
-  openRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  newBadge: { fontSize: 13, fontWeight: "700", color: Colors.textLight },
+  openRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 24 },
   dot: { width: 6, height: 6, borderRadius: 999 },
   openText: { fontSize: 12, fontWeight: "500" },
   closedNote: { fontSize: 12, fontWeight: "400", color: Colors.textLight, marginLeft: -4 },
+  schedule: { gap: 6, paddingVertical: 4 },
+  scheduleRow: { flexDirection: "row", justifyContent: "space-between" },
+  scheduleDay: { fontSize: 13, color: Colors.textSecondary },
+  scheduleHours: { fontSize: 13, color: Colors.textPrimary, fontWeight: "500" },
   actions: { flexDirection: "row", gap: 8 },
   action: {
     flex: 1,
-    height: 40,
+    minHeight: 44,
     borderRadius: 12,
     backgroundColor: Colors.background,
     flexDirection: "row",
@@ -445,7 +560,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     marginBottom: 14,
   },
-  tabItem: { paddingBottom: 10 },
+  tabItem: { paddingBottom: 10, minHeight: 44, justifyContent: "center" },
   tabText: { fontSize: 15, fontWeight: "500", color: Colors.textLight },
   tabTextActive: { color: Colors.textPrimary, fontWeight: "600" },
   tabCount: { color: Colors.textLight, fontWeight: "500" },
@@ -460,7 +575,7 @@ const styles = StyleSheet.create({
   },
   chipsScroll: { flexGrow: 0, marginBottom: 12 },
   chipsRow: { paddingHorizontal: 20, gap: 8 },
-  chip: { height: 34, borderRadius: 999, paddingHorizontal: 14, justifyContent: "center" },
+  chip: { minHeight: 44, borderRadius: 999, paddingHorizontal: 16, justifyContent: "center" },
   chipActive: { backgroundColor: Colors.textPrimary },
   chipInactive: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
   chipTextActive: { fontSize: 13, fontWeight: "500", color: Colors.white },
@@ -485,7 +600,27 @@ const styles = StyleSheet.create({
   serviceName: { fontSize: 16, fontWeight: "700", color: Colors.textPrimary },
   serviceMeta: { fontSize: 13, color: Colors.textSecondary },
   servicePrice: { fontWeight: "700", color: Colors.textPrimary },
-  bookButton: { height: 40, borderRadius: 999, paddingHorizontal: 22, justifyContent: "center", alignItems: "center" },
+  bookButton: { minHeight: 44, borderRadius: 999, paddingHorizontal: 22, justifyContent: "center", alignItems: "center" },
   bookText: { fontSize: 14, fontWeight: "600", color: Colors.white },
   about: { fontSize: 15, lineHeight: 23, color: Colors.textSecondary },
+  aboutMeta: { fontSize: 14, color: Colors.textPrimary, marginTop: 4 },
+
+  emptyState: { paddingVertical: 24, alignItems: "center", gap: 12 },
+  emptyHeading: { fontSize: 18, fontWeight: "700", color: Colors.textPrimary },
+  inlineEmpty: { paddingVertical: 20, alignItems: "center", gap: 8 },
+  showAll: { fontSize: 15, fontWeight: "600", color: Colors.primary },
+  primaryButton: {
+    minHeight: 44,
+    borderRadius: 999,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  primaryButtonText: { fontSize: 15, fontWeight: "600", color: Colors.white },
+  notifyDone: { backgroundColor: Colors.success },
+  errorWrap: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 14 },
+
+  skel: { backgroundColor: "#ECECEF" },
+  skelLine: { height: 12, borderRadius: 6, backgroundColor: "#ECECEF" },
 });
