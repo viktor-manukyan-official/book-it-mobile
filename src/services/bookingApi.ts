@@ -7,6 +7,7 @@ import type {
   CustomerAppointment,
   DayAvailability,
   GenderPref,
+  Review,
 } from "../types/catalog";
 
 // Booking availability (BOOK-72). These queries require auth (the customer is
@@ -251,6 +252,65 @@ export async function cancelAppointment(
       (err.code === "BAD_REQUEST" || /cannot cancel appointment with status/i.test(err.message))
     ) {
       throw new AppointmentStateChangedError(err.message);
+    }
+    throw err;
+  }
+}
+
+const MY_REVIEW_QUERY = /* GraphQL */ `
+  query MyReview($appointmentId: ID!) {
+    myReview(appointmentId: $appointmentId) {
+      id
+      appointmentId
+      rating
+      tags
+      note
+    }
+  }
+`;
+
+const CREATE_REVIEW_MUTATION = /* GraphQL */ `
+  mutation CreateReview($input: CreateReviewInput!) {
+    createReview(input: $input) {
+      id
+      appointmentId
+      rating
+      tags
+      note
+    }
+  }
+`;
+
+// The appointment was already reviewed (e.g. from another device / double tap).
+export class AlreadyReviewedError extends Error {}
+
+/** The customer's review for an appointment, or null (BOOK-77). */
+export async function fetchMyReview(appointmentId: string): Promise<Review | null> {
+  const data = await graphqlRequest<{ myReview: Review | null }>(MY_REVIEW_QUERY, {
+    appointmentId,
+  });
+  return data.myReview;
+}
+
+export interface CreateReviewArgs {
+  appointmentId: string;
+  rating: number;
+  tags?: string[];
+  note?: string;
+}
+
+export async function createReview(args: CreateReviewArgs): Promise<Review> {
+  try {
+    const data = await graphqlRequest<{ createReview: Review }>(CREATE_REVIEW_MUTATION, {
+      input: { ...args, tags: args.tags ?? [], note: args.note || undefined },
+    });
+    return data.createReview;
+  } catch (err) {
+    if (
+      err instanceof GraphQLRequestError &&
+      (err.code === "CONFLICT" || /already reviewed/i.test(err.message))
+    ) {
+      throw new AlreadyReviewedError(err.message);
     }
     throw err;
   }

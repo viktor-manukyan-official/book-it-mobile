@@ -5,8 +5,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "../../constants/colors";
-import { fetchMyAppointment } from "../../src/services/bookingApi";
-import type { CustomerAppointment } from "../../src/types/catalog";
+import { fetchMyAppointment, fetchMyReview } from "../../src/services/bookingApi";
+import type { CustomerAppointment, Review } from "../../src/types/catalog";
 
 // Minimal read-only Booking details (BOOK-75 entry point). Cancellation and
 // rescheduling are a separate task.
@@ -40,10 +40,12 @@ export default function BookingDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [appt, setAppt] = useState<CustomerAppointment | null>(null);
+  const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(!!id);
   const [cancellable, setCancellable] = useState(false);
 
-  // Re-fetch on focus so returning from the cancel sheet reflects the new state.
+  // Re-fetch on focus so returning from the cancel / rate sheets reflects the
+  // new state (cancelled status, or a just-submitted review).
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
@@ -56,6 +58,11 @@ export default function BookingDetailsScreen() {
             (a.status === "pending" || a.status === "confirmed") &&
               new Date(a.startTime).getTime() > Date.now(),
           );
+          if (a.status === "completed") {
+            void fetchMyReview(id)
+              .then((r) => active && setReview(r))
+              .catch(() => {});
+          }
         })
         .catch(() => {})
         .finally(() => active && setLoading(false));
@@ -64,6 +71,8 @@ export default function BookingDetailsScreen() {
       };
     }, [id]),
   );
+
+  const canRate = appt?.status === "completed" && !review;
 
   const status = appt ? (STATUS[appt.status] ?? STATUS.pending) : null;
   const where = appt ? [appt.venueName, appt.venueAddress].filter(Boolean).join(", ") : "";
@@ -106,6 +115,27 @@ export default function BookingDetailsScreen() {
             <Row label="Where" value={where} />
             <Row label="Price" value={`${money(appt.price)} · pay at venue`} />
           </View>
+
+          {review ? (
+            <View style={styles.reviewedRow}>
+              <Text style={styles.reviewedLabel}>Your rating</Text>
+              <Text style={styles.reviewedStars}>
+                {"★".repeat(review.rating)}
+                <Text style={styles.reviewedStarsEmpty}>{"★".repeat(5 - review.rating)}</Text>
+              </Text>
+            </View>
+          ) : null}
+
+          {canRate ? (
+            <TouchableOpacity
+              style={styles.rateButton}
+              onPress={() => router.push({ pathname: "/booking/rate", params: { id: appt.id } })}
+              accessibilityRole="button"
+              accessibilityLabel="Rate your visit"
+            >
+              <Text style={styles.rateButtonText}>Rate your visit</Text>
+            </TouchableOpacity>
+          ) : null}
 
           {cancellable ? (
             <TouchableOpacity
@@ -184,4 +214,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelButtonText: { fontSize: 15, fontWeight: "700", color: Colors.error },
+  rateButton: {
+    marginTop: 20,
+    minHeight: 48,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  rateButtonText: { fontSize: 15, fontWeight: "700", color: Colors.white },
+  reviewedRow: {
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewedLabel: { fontSize: 15, color: Colors.textSecondary },
+  reviewedStars: { fontSize: 18, color: Colors.star, letterSpacing: 2 },
+  reviewedStarsEmpty: { color: "#D8D8DE" },
 });
+

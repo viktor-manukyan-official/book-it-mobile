@@ -131,6 +131,15 @@ export interface CustomerAppointment {
   timezone: string;
 }
 
+// A customer review (BOOK-77).
+export interface Review {
+  id: string;
+  appointmentId: string;
+  rating: number;
+  tags: string[];
+  note?: string | null;
+}
+
 // A row in the My Bookings list (BOOK-75).
 export interface BookingListItem {
   id: string;
